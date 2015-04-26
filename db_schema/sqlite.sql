@@ -14,7 +14,7 @@ CREATE TABLE `credentials` (
   `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
   `tracker` varchar(30) DEFAULT NULL,
   `log` varchar(30) DEFAULT NULL,
-  `pass` varchar(30) DEFAULT NULL,
+  `pass` varchar(100) DEFAULT NULL,
   `cookie` varchar(255) DEFAULT NULL,
   `passkey` varchar(255) DEFAULT NULL
 );
@@ -35,12 +35,31 @@ INSERT INTO "credentials" VALUES (13,'tracker.0day.kiev.ua','','','', '');
 INSERT INTO "credentials" VALUES (14,'rustorka.com','','','', '');
 INSERT INTO "credentials" VALUES (15,'pornolab.net','','','', '');
 INSERT INTO "credentials" VALUES (17,'lostfilm-mirror',' ',' ','', '');
+INSERT INTO "credentials" VALUES (18,'hamsterstudio.org',' ',' ','', '');
+INSERT INTO "credentials" VALUES (19,'tv.mekc.info',' ',' ','', '');
+
 
 CREATE TABLE `news` (
   `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
   `text` TEXT,
   `new` INTEGER NOT NULL DEFAULT '1'
 );
+
+CREATE TABLE `notifications` (
+  `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+  `service` varchar(32) NOT NULL,
+  `address` varchar(100) NOT NULL,
+  `type` varchar(13) NOT NULL
+);
+
+INSERT INTO "notifications" VALUES(1,'E-mail','','notification');
+INSERT INTO "notifications" VALUES(2,'E-mail','','warning');
+INSERT INTO "notifications" VALUES(3,'Prowl','','notification');
+INSERT INTO "notifications" VALUES(4,'Prowl','','warning');
+INSERT INTO "notifications" VALUES(5,'Pushbullet','','notification');
+INSERT INTO "notifications" VALUES(6,'Pushbullet','','warning');
+INSERT INTO "notifications" VALUES(7,'Pushover','','notification');
+INSERT INTO "notifications" VALUES(8,'Pushover','','warning');
 
 CREATE TABLE `settings` (
   `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -49,28 +68,29 @@ CREATE TABLE `settings` (
 );
 
 INSERT INTO "settings" VALUES (3, 'send', '1');
+INSERT INTO "settings" VALUES (4, 'sendWarning', '0');
 INSERT INTO "settings" VALUES (5, 'password', '1f10c9fd49952a7055531975c06c5bd8');
 INSERT INTO "settings" VALUES (6, 'auth', '1');
-INSERT INTO "settings" VALUES (4, 'sendWarning', '0');
 INSERT INTO "settings" VALUES (7, 'proxy', '0');
 INSERT INTO "settings" VALUES (8, 'proxyAddress', '127.0.0.1:9050');
+INSERT INTO "settings" VALUES (9, 'useTorrent', '0');
+INSERT INTO "settings" VALUES (10, 'torrentClient', '');
 INSERT INTO "settings" VALUES (11, 'torrentAddress', '127.0.0.1:9091');
 INSERT INTO "settings" VALUES (12, 'torrentLogin', '');
 INSERT INTO "settings" VALUES (13, 'torrentPassword', '');
 INSERT INTO "settings" VALUES (14, 'pathToDownload', '');
 INSERT INTO "settings" VALUES (16, 'deleteOldFiles', '0');
-INSERT INTO "settings" VALUES (10, 'torrentClient', '');
-INSERT INTO "settings" VALUES (9, 'useTorrent', '0');
-INSERT INTO "settings" VALUES (28, 'sendWarningPushover', '');
 INSERT INTO "settings" VALUES (19, 'serverAddress', '');
 INSERT INTO "settings" VALUES (20, 'deleteDistribution', '0');
-INSERT INTO "settings" VALUES (27, 'sendWarningEmail', '');
 INSERT INTO "settings" VALUES (24, 'sendUpdate', '0');
-INSERT INTO "settings" VALUES (25, 'sendUpdateEmail', '');
-INSERT INTO "settings" VALUES (26, 'sendUpdatePushover', '');
 INSERT INTO "settings" VALUES (29, 'debug', '0');
 INSERT INTO "settings" VALUES (30, 'rss', '1');
+INSERT INTO "settings" VALUES (31, 'debugFor', '');
 INSERT INTO "settings" VALUES (32, 'httpTimeout', '15');
+INSERT INTO "settings" VALUES (33, 'sendUpdateService', '');
+INSERT INTO "settings" VALUES (35, 'sendWarningService', '');
+INSERT INTO "settings" VALUES (37, 'proxyType', '15');
+
 
 CREATE TABLE `temp` (
   `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -91,7 +111,8 @@ CREATE TABLE `torrent` (
   `ep` varchar(10) DEFAULT '',
   `timestamp` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
   `auto_update` INTEGER NOT NULL DEFAULT '0',
-  `hash` varchar(40) NOT NULL DEFAULT ''
+  `hash` varchar(40) NOT NULL DEFAULT '',
+  `script` varchar(100) NOT NULL DEFAULT ''
 );
 
 CREATE TABLE `warning` (

@@ -5,11 +5,8 @@ include_once $dir."class/Database.class.php";
 if ( ! Sys::checkAuth())
     die(header('Location: ../'));
 $torrent = Database::getTorrent($_GET['id']);
-
-foreach ($torrent as $row)
-{
-	extract($row);
-}
+$tracker = $torrent[0]['tracker'];
+$hd = $torrent[0]['hd'];
 ?>
 <div id="notice_sub"></div>
 <div align="right"><a href="#" onclick='$(".coverAll").hide();'><img src="img/delete.png" boder="0"></a></div>
@@ -22,8 +19,8 @@ foreach ($torrent as $row)
         <input type="text" name="name" value="<?php echo $torrent[0]['name']?>"><br/>
         <span class="subinput-text">Необязательно</span>
     </p>
-<?php 
-if (isset($torrent_id) && $torrent_id != 0)
+<?php
+if (isset($torrent[0]['torrent_id']) && $torrent[0]['torrent_id'] != 0)
 {
 ?>
     <p>
@@ -31,19 +28,19 @@ if (isset($torrent_id) && $torrent_id != 0)
 <?php
 if ($tracker == 'rutracker.org' || $tracker == 'nnm-club.me' || $tracker == 'tfile.me' || $tracker == 'torrents.net.ua' || $tracker == 'pornolab.net' || $tracker == 'rustorka.com')
     $tracker = 'http://'.$tracker.'/forum/viewtopic.php?t=';
-elseif ($tracker == 'casstudio.tv' || $tracker == 'kinozal.tv'  || $tracker == 'animelayer.ru' || $tracker == 'tracker.0day.kiev.ua')
+elseif ($tracker == 'casstudio.tv' || $tracker == 'kinozal.tv'  || $tracker == 'animelayer.ru' || $tracker == 'tracker.0day.kiev.ua' || $tracker == 'tv.mekc.info')
     $tracker = 'http://'.$tracker.'/details.php?id=';
 elseif ($tracker == 'rutor.org')
     $tracker = 'http://alt.rutor.org/torrent/';
 elseif ($tracker == 'anidub.com')
     $tracker = 'http://tr.anidub.com/';
 ?>
-        <input type="text" name="url" value="<?php echo $tracker.$torrent_id?>">
+        <input type="text" name="url" value="<?php echo $tracker.$torrent[0]['torrent_id']?>">
         <span class="subinput-text">Пример: http://rutracker.org/forum/viewtopic.php?t=4201572</span>
     </p>
     <p>
         <label class="label-name">Обновлять заголовок автоматически</label>
-        <input type="checkbox" name="update" id="update" <?php if ($auto_update) echo 'checked'?> ><br>
+        <input type="checkbox" name="update" id="update" <?php if ($torrent[0]['auto_update']) echo 'checked'?> ><br>
     </p>    
 <?php
 }
@@ -72,8 +69,13 @@ else
 ?>
     <p>
         <label class="label-name">Директория для скачивания</label>
-        <input type="text" name="path" id="path" value="<?php echo $path?>"><br>
+        <input type="text" name="path" id="path" value="<?php echo $torrent[0]['path']?>"><br>
         <span class="subinput-text">Например: /var/lib/transmission/downloads</span>
+    </p>
+    <p>
+        <label class="label-name">Выполнить скрипт</label>
+        <input type="text" name="script" id="script" value="<?php echo $torrent[0]['script']?>"><br>
+        <span class="subinput-text">Например: /home/user/check.sh</span>
     </p>
     <p>
         <label class="label-name">Сбросить время последнего обновления</label>

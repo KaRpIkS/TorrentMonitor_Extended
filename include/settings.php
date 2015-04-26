@@ -3,8 +3,36 @@ $dir = dirname(__FILE__)."/../";
 include_once $dir."config.php";
 include_once $dir."class/System.class.php";
 include_once $dir."class/Database.class.php";
-if ( ! Sys::checkAuth())
-    die(header('Location: ../'));
+#if ( ! Sys::checkAuth())
+#    die(header('Location: ../'));
+
+function generateList($type, $sendUpdateService)
+{
+    echo '<label class="label-name">Сервис уведомлений</label>';
+    echo "<select onchange=\"changeDiv('{$type}')\" id=\"{$type}\" name=\"send{$type}Service\">";
+    $services = Database::getServiceList($type);
+    for ($i=0; $i<count($services); $i++)
+    {
+        echo '<option value="'.$services[$i]['id'].'"';
+        if ($sendUpdateService == $services[$i]['id'])
+            echo ' selected';
+        echo '>'.$services[$i]['service'].'</option>';
+    }
+    echo '
+    </select>
+    <br />';
+    for ($i=0; $i<count($services); $i++)
+    {
+        echo '<div id="'.$services[$i]['service'].'_'.$type.'_label" class="result">';
+        echo '<input type="hidden" name="id" value="'.$services[$i]['id'].'">';
+        echo '<p>
+            <label class="label-name">Адресс</label>
+            <input type="text" name="send'.$type.'Address'.$services[$i]['id'].'" value="'.$services[$i]['address'].'">
+        </p>
+        </div>';
+    }
+    echo '<span class="subinput-text">Например: korp@bk.ru</span>';
+}
 
 $settings = Database::getAllSetting();
 foreach ($settings as $row)
@@ -12,6 +40,10 @@ foreach ($settings as $row)
 	extract($row);
 }
 ?>
+<script type="text/javascript">
+    changeDiv('notification');
+    changeDiv('warning');
+</script>
 <h2 class="settings-title">Настройки монитора</h2>
 
 <form id="setting">
@@ -30,26 +62,14 @@ foreach ($settings as $row)
             <label><input type="checkbox" name="sendUpdate" <?php if ($sendUpdate) echo "checked" ?> onclick="expand('sendUpdate')"> Отправлять уведомления об обновлениях</label>
         </p>
         <div id="sendUpdate" <?php if ( ! $sendUpdate) echo 'class="result"' ?>>
-            <label class="label-name">E-mail</label>
-            <input type="text" name="sendUpdateEmail" value="<?php echo $sendUpdateEmail ?>">
-            <span class="subinput-text">Например: vasya@test.ru</span>
-            <br />
-            <label class="label-name">Pushover (<a href="https://pushover.net" target="_blank">?</a>)</label>
-            <input type="text" name="sendUpdatePushover" value="<?php echo $sendUpdatePushover ?>">
-            <span class="subinput-text">Например: uyrxppPbPgetdh7neWr4NZ8rYuyTXD</span>
+            <?php generateList('notification', $sendUpdateService) ?>
         </div>
         <p>
             <label class="label-name"></label>
             <label><input type="checkbox" name="sendWarning" <?php if ($sendWarning) echo "checked" ?> onclick="expand('sendWarning')"> Отправлять уведомления об ошибках</label>
         </p>
         <div id="sendWarning" <?php if ( ! $sendWarning) echo 'class="result"' ?>>
-            <label class="label-name">E-mail</label>
-            <input type="text" name="sendWarningEmail" value="<?php echo $sendWarningEmail ?>">
-            <span class="subinput-text">Например: vasya@test.ru</span>
-            <br />
-            <label class="label-name">Pushover (<a href="https://pushover.net" target="_blank">?</a>)</label>
-            <input type="text" name="sendWarningPushover" value="<?php echo $sendWarningPushover ?>">
-            <span class="subinput-text">Например: uyrxppPbPgetdh7neWr4NZ8rYuyTXD</span>
+            <?php generateList('warning', $sendWarningService) ?>
         </div>
     </div>
     <p>
@@ -62,6 +82,14 @@ foreach ($settings as $row)
     </p>
     <div id="proxySettings" <?php if ( ! $proxy) echo 'class="result"' ?>>
         <p>
+            <label class="label-name">Тип proxy</label>
+            <label>
+                <select id="proxyType" name="proxyType">
+                    <option value="HTTP" <?php if ($proxyType == 'HTTP') echo 'selected';?>>HTTP</option>
+                    <option value="SOCKS5" <?php if ($proxyType == 'SOCKS5') echo 'selected';?>>SOCKS5</option>
+                </select>
+            </label>
+            <br />
             <label class="label-name">IP, порт прокси-сервера</label>
             <input type="text" name="proxyAddress" value="<?php echo $proxyAddress ?>">
             <span class="subinput-text">Например: 127.0.0.1:9050</span>

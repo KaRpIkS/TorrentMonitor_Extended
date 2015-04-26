@@ -62,11 +62,8 @@ if ($update)
         </menu>
     </header>
     <div class="coverAll" style="display: none">
-        <div class="blok">
-        </div>
+        <div class="blok"></div>
     </div>
-    <div id="content">
-
-    </div>
+    <div id="content"></div>
 </div>
 <?php include_once "footer.php"; ?>

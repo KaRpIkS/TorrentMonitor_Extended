@@ -40,12 +40,12 @@ if (Sys::checkConfig())
 					if ($tracker == 'tracker.0day.kiev.ua')
 					    $functionClass = 'kiev';
 					    
-                    if ($tracker == 'torrents.net.ua')
-					    $functionClass = 'torrentsnet';
+                    if ($tracker == 'tv.mekc.info')
+					    $functionClass = 'mekc';
 
 					echo $torrentsList[$i]['name'].' на трекере '.$tracker."\r\n".'<br />';
 					
-					if ($tracker == 'lostfilm.tv' || $tracker == 'lostfilm-mirror' || $tracker == 'novafilm.tv' || $tracker == 'baibako.tv' || $tracker == 'newstudio.tv')
+					if ($tracker == 'baibako.tv' || $tracker == 'hamsterstudio.org' || $tracker == 'lostfilm.tv' || $tracker == 'lostfilm-mirror' || $tracker == 'newstudio.tv' || $tracker == 'novafilm.tv')
 					{
     				    $time_start = microtime(true);
     				    call_user_func($functionClass.'::main', $torrentsList[$i]['id'], $tracker, $torrentsList[$i]['name'], $torrentsList[$i]['hd'], $torrentsList[$i]['ep'], $torrentsList[$i]['timestamp'], $torrentsList[$i]['hash']);
@@ -54,7 +54,7 @@ if (Sys::checkConfig())
     				    if ($debug)
     				        echo 'Время выполнения: '.$time."\r\n".'<br />';
 					}
-					if ($tracker == 'rutracker.org' || $tracker == 'nnm-club.me' || $tracker == 'rutor.org' || $tracker == 'tfile.me' || $tracker == 'kinozal.tv' || $tracker == 'anidub.com' || $tracker == 'casstudio.tv'  || $tracker == 'animelayer.ru' || $tracker == 'tracker.0day.kiev.ua' || $tracker == 'torrents.net.ua' || $tracker == 'pornolab.net' || $tracker == 'rustorka.com')
+					if ($tracker == 'anidub.com' || $tracker == 'animelayer.ru' || $tracker == 'casstudio.tv' || $tracker == 'kinozal.tv' || $tracker == 'nnm-club.me' || $tracker == 'pornolab.net' || $tracker == 'rustorka.com' || $tracker == 'rutor.org' ||    $tracker == 'rutracker.org' || $tracker == 'tfile.me' || $tracker == 'tracker.0day.kiev.ua' || $tracker == 'tv.mekc.info')
 					{
     				    $time_start = microtime(true);
     					call_user_func($functionClass.'::main', $torrentsList[$i]['id'], $tracker, $torrentsList[$i]['name'], $torrentsList[$i]['torrent_id'], $torrentsList[$i]['timestamp'], $torrentsList[$i]['hash'], $torrentsList[$i]['auto_update']);

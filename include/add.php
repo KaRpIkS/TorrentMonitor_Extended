@@ -27,7 +27,7 @@ if ( ! Sys::checkAuth())
     </p>
     <p>
         <label class="label-name">Обновлять заголовок автоматически</label>
-        <input type="checkbox" name="update" id="update" <?php if ($auto_update) echo 'checked'?> ><br>
+        <input type="checkbox" name="update_header" id="update_header"><br>
     </p>
 	</div>
     <button class="form-button">Добавить</button>
@@ -42,6 +42,7 @@ if ( ! Sys::checkAuth())
         <select id="tracker" name="tracker" onchange="changeField()">
             <option></option>
             <option value="baibako.tv">baibako.tv</option>
+            <option value="hamsterstudio.org">hamsterstudio.org</option>
             <option value="lostfilm.tv">lostfilm.tv</option>
             <option value="lostfilm-mirror">lostfilm-mirror</option>
             <option value="newstudio.tv">newstudio.tv</option>

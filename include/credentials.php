@@ -12,7 +12,7 @@ $trackers = Database::getTrackersList();
 <h2 class="account-title">Редактировать учетные данные</h2>
 <p>
 	<label class="label-name">Трекер</label>
-	<select onchange="changefunc()" id="selectfunc">
+	<select onchange="changeDiv('trackers');" id="trackers">
 	    <option></option>
         <?php
 		for ($i=0; $i<count($trackers); $i++)
@@ -28,7 +28,7 @@ $trackers = Database::getTrackersList();
     	for ($i=0; $i<count($credential); $i++)
     	{
     	?>
-<div id="<?php echo $credential[$i]['tracker'] ?>_label" class="result">
+<div id="<?php echo $credential[$i]['tracker'] ?>_trackers_label" class="result">
 <form id="credential">
     <input type="hidden" name="id" value="<?php echo $credential[$i]['id'] ?>">
 	<p>

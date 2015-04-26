@@ -20,7 +20,13 @@ else
 
 $i=0;
 
-if ( ! empty($torrents_list))
+if (empty($torrents_list)) 
+    echo 'Нет тем для мониторинга';
+/*
+if ( ! is_array($torrents_list))
+    echo '<div class="dberror">'.$torrents_list.'</div>';
+*/
+else
 {
 ?>
 <table>
@@ -52,7 +58,7 @@ if ( ! empty($torrents_list))
 				<a href='http://<?php echo $tracker ?>/forum/viewtopic.php?t=<?php echo $torrent_id ?>' target='_blank'><?php echo $name ?></a>
     		<?php
     		}
-    		elseif ($tracker == 'kinozal.tv'  || $tracker == 'animelayer.ru' || $tracker == 'tracker.0day.kiev.ua')
+    		elseif ($tracker == 'animelayer.ru' || $tracker == 'kinozal.tv'  || $tracker == 'tracker.0day.kiev.ua' || $tracker == 'tv.mekc.info')
     		{
             ?>
         	    <a href='http://<?php echo $tracker ?>/details.php?id=<?php echo $torrent_id ?>' target='_blank'><?php echo $name ?></a>
@@ -80,11 +86,11 @@ if ( ! empty($torrents_list))
     		{
                 if ($hd == 1 && $tracker == 'lostfilm.tv' || $hd == 1 && $tracker == 'lostfilm-mirror')
                 	echo '<img src="img/720.png">&nbsp;<img src="img/1080.png">';
-                elseif ($hd == 1 && $tracker == 'baibako.tv' || $hd == 1 && $tracker == 'newstudio.tv' || $hd == 1 && $tracker == 'novafilm.tv')
+                elseif ($hd == 1 && $tracker == 'baibako.tv' || $hd == 1 && $tracker == 'hamsterstudio.org' || $hd == 1 && $tracker == 'newstudio.tv' || $hd == 1 && $tracker == 'novafilm.tv')
                 	echo '<img src="img/720.png">';
                 elseif ($hd == 2 && $tracker == 'lostfilm.tv' || $hd == 2 && $tracker == 'lostfilm-mirror')
                 	echo '<img src="img/720mp4.png">';
-                elseif ($hd == 2 && $tracker == 'baibako.tv' || $hd == 2 && $tracker == 'newstudio.tv' || $hd == 2 && $tracker == 'novafilm.tv')
+                elseif ($hd == 2 && $tracker == 'baibako.tv' || $hd == 2 && $tracker == 'hamsterstudio.org' || $hd == 2 && $tracker == 'newstudio.tv' || $hd == 2 && $tracker == 'novafilm.tv')
                     echo '<img src="img/1080.png">';
                 else
                     echo '<img src="img/sd.png">';
@@ -153,7 +159,7 @@ if ( ! empty($torrents_list))
 	</tbody> 
 </table>
 
-<div class='update'>Последний запуск:
+<div class='updatetime'>Последний запуск:
 <?php
 $lasrStart = @file_get_contents(dirname(__FILE__).'/../laststart.txt');
 if ( ! empty($lasrStart))

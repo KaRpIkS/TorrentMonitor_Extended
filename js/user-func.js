@@ -30,14 +30,14 @@ $( document ).ready(function()
 
     //Передаём пароль
     $("#enter").submit(function() {
-        var $form = $(this),p = $form.find('input[name="password"]').val();
+        var $form = $(this),p = $form.find('input[name="password"]').val(),
+            r_m = $form.find('input[name="remember"]').prop('checked');
         ohSnap('Обрабатывается запрос...', 'yellow');
-        $.post("action.php",{action: 'enter', password: p},
+        $.post("action.php",{action: 'enter', password: p, remember: r_m},
             function(data) {
                 if (data.error)
                 {
-                    ohSnapX();
-                    ohSnap(data.msg, 'green');
+                    ohSnap(data.msg, 'red');
                 }
                 else
                     document.location.reload();
@@ -58,8 +58,9 @@ $( document ).ready(function()
             u_f = $form.find('input[name="url"]'),
             u = $(u_f).val(),
             p_f = $form.find('input[name="path"]'),
-            p = $(p_f).val(); 
-        
+            p = $(p_f).val(),
+            u_h = $form.find('input[name="update_header"]').prop('checked');
+
         if (u == '')
         {
             ohSnap('Вы не указали ссылку на тему!', 'red');
@@ -67,13 +68,19 @@ $( document ).ready(function()
         }
                                     
         ohSnap('Обрабатывается запрос...', 'yellow');
-        $.post("action.php",{action: 'torrent_add', name: n, url: u, path: p},
+        $.post("action.php",{action: 'torrent_add', name: n, url: u, path: p, update_header: u_h},
             function(data) {
-                ohSnapX();
-                ohSnap(data, 'green');
-                $(n_f).val('');
-                $(u_f).val('');
-            }
+                if (data.error)
+                {
+                    ohSnap(data.msg, 'red');
+                }
+                else
+                {
+                    $(n_f).val('');
+                    $(u_f).val('');
+                    ohSnap(data.msg, 'green');
+                }
+            }, "json"
         );
         return false;
     });
@@ -103,19 +110,13 @@ $( document ).ready(function()
         }
 
         if (t == '')
-        {
             formError += "Вы не выбрали трекер!<br>";
-        }
         
         if (n == '')
-        {
             formError += "Вы не указали название сериала!<br>";
-        }
 
         if (!qualitySelected)
-        {
             formError += "Вы не выбрали качество!";
-        }
 
         if (formError != "")
         {
@@ -126,11 +127,17 @@ $( document ).ready(function()
         ohSnap('Обрабатывается запрос...', 'yellow');
         $.post("action.php",{action: 'serial_add', tracker: t, name: n, hd: h, path: p},
             function(data) {
-                ohSnapX();
-                ohSnap(data, 'green');
-                $(n_f).val('');
-                $(h_f).removeAttr('checked');
-            }
+                if (data.error)
+                {
+                    ohSnap(data.msg, 'red');
+                }
+                else
+                {
+                    $(n_f).val('');
+                    $(h_f).removeAttr('checked');
+                    ohSnap(data.msg, 'green');
+                }
+            }, "json"
         );
         return false;
     });
@@ -152,6 +159,8 @@ $( document ).ready(function()
             update = $form.find('input[name="update"]').prop('checked'),
             p_f = $form.find('input[name="path"]'),
             p = $(p_f).val();
+            s_f = $form.find('input[name="script"]'),
+            s = $(s_f).val();
             h_f = $form.find('input[name="hd"]'),
             r_f = $form.find('input[name="reset"]').prop('checked');
             
@@ -165,14 +174,10 @@ $( document ).ready(function()
         }
             
         if (u == '')
-        {
             formError += "Вы не указали ссылку на тему!\n";
-        }
         
         if (n == '')
-        {
             formError += "Вы не указали название сериала!";
-        }
 
         if (formError != "")
         {
@@ -181,11 +186,24 @@ $( document ).ready(function()
         }
 
         ohSnap('Обрабатывается запрос...', 'yellow');
-        $.post("action.php",{action: 'update', id: id, tracker: t, name: n, url: u, update: update, path: p, hd: h, reset: r_f},
+        $.post("action.php",{action: 'update', id: id, tracker: t, name: n, url: u, update: update, path: p, script: s, hd: h, reset: r_f},
             function(data) {
-                ohSnapX();
-                ohSnap(data, 'green');
-            }
+                if (data.error)
+                {
+                    ohSnap(data.msg, 'red');
+                }
+                else
+                {
+                    $.get("include/show_table.php",
+            		    function(data) {
+            			    $('#content').delay(3000).empty().append(data);
+            		    }
+                    );                    
+                    $('.coverAll').hide();
+                    $('.blok').empty();
+                    ohSnap(data.msg, 'green');
+                }
+            }, "json"
         );
 
         return false;
@@ -202,14 +220,10 @@ $( document ).ready(function()
             n = $(n_f).val();
 
         if (t == '')
-        {
             formError += "Вы не выбрали трекер!\n";
-        }
         
         if (n == '')
-        {
             formError += "Вы не указали имя пользователя!";
-        }
 
         if (formError != "")
         {
@@ -220,10 +234,16 @@ $( document ).ready(function()
         ohSnap('Обрабатывается запрос...', 'yellow');
         $.post("action.php",{action: 'user_add', tracker: t, name: n},
             function(data) {
-                ohSnapX();
-                ohSnap(data, 'green');
-                $(n_f).val('');
-            }
+                if (data.error)
+                {
+                    ohSnap(data.msg, 'red');
+                }
+                else
+                {
+                    ohSnap(data.msg, 'green');
+                    $(n_f).val('');
+                }
+            }, "json"
         );
         return false;
     });
@@ -234,14 +254,20 @@ $( document ).ready(function()
         ohSnap('Обрабатывается запрос...', 'yellow');
         $.post("action.php",{action: 'threme_clear'},
             function(data) {
-                ohSnapX();
-                ohSnap(data, 'green');
-                $.get("include/show_watching.php",
-                    function(data) {
-                        $('#content').empty().append(data);
-                    }
-                );
-            }
+                if (data.error)
+                {
+                    ohSnap(data.msg, 'red');
+                }
+                else
+                {
+                    ohSnap(data.msg, 'green');
+                    $.get("include/show_watching.php",
+                        function(data) {
+                            $('#content').empty().append(data);
+                        }
+                    );
+                }
+            }, "json"
         );
         return false;
     });
@@ -258,14 +284,10 @@ $( document ).ready(function()
             passkey = $form.find('input[name="passkey"]').val();
 
         if (l == '')
-        {
             formError += "Вы не указали логин!\n";
-        }
         
         if (p == '')
-        {
             formError += "Вы не указали пароль!";
-        }
 
         if (formError != "")
         {
@@ -276,10 +298,16 @@ $( document ).ready(function()
         ohSnap('Обрабатывается запрос...', 'yellow');
         $.post("action.php",{action: 'update_credentials', id: id, log: l, pass: p, passkey: passkey},
             function(data) {
-                ohSnapX();
-                ohSnap(data, 'green');
-                $(b).removeAttr('disabled');
-            }
+                if (data.error)
+                {
+                    ohSnap(data.msg, 'red');
+                }
+                else
+                {
+                    $(b).removeAttr('disabled');
+                    ohSnap(data.msg, 'green');
+                }
+            }, "json"
         );
         return false;
     });
@@ -293,13 +321,14 @@ $( document ).ready(function()
             serverAddress = $form.find('input[name="serverAddress"]').val();
             send = $form.find('input[name="send"]').prop('checked');
             sendUpdate = $form.find('input[name="sendUpdate"]').prop('checked');
-            sendUpdateEmail = $form.find('input[name="sendUpdateEmail"]').val();
-            sendUpdatePushover = $form.find('input[name="sendUpdatePushover"]').val();            
             sendWarning = $form.find('input[name="sendWarning"]').prop('checked');
-            sendWarningEmail = $form.find('input[name="sendWarningEmail"]').val();
-            sendWarningPushover = $form.find('input[name="sendWarningPushover"]').val();            
+            sendUpdateService = $form.find('select[name="sendnotificationService"]').val();
+            sendUpdateAddress = $form.find('input[name="sendnotificationAddress'+sendUpdateService+'"]').val();
+            sendWarningService = $form.find('select[name="sendwarningService"]').val();
+            sendWarningAddress = $form.find('input[name="sendwarningAddress'+sendWarningService+'"]').val();
             auth = $form.find('input[name="auth"]').prop('checked');
             proxy = $form.find('input[name="proxy"]').prop('checked');
+            proxyType = $form.find('select[name="proxyType"]').val();
             proxyAddress = $form.find('input[name="proxyAddress"]').val();
             torrent = $form.find('input[name="torrent"]').prop('checked');
             torrentClient = $form.find('select[name="torrentClient"]').val();
@@ -311,21 +340,18 @@ $( document ).ready(function()
             deleteOldFiles = $form.find('input[name="deleteOldFiles"]').prop('checked');
             rss = $form.find('input[name="rss"]').prop('checked');
             debug = $form.find('input[name="debug"]').prop('checked');
+            
+            console.log(sendUpdateAddress);
+            console.log(sendWarningAddress);
         
         if (serverAddress == '')
-        {
             formError += "Вы не указали адрес сервера TM.\n";
-        }
         
         if (proxy == 'checked' && proxyAddress == '')
-        {
             formError += "Вы не указали адрес proxy-сервера.\n";
-        }
         
         if (torrent == 'checked' && torrentClient == ''  && torrentAddress == '' && pathToDownload == '')
-        {
             formError += "Вы не указали настройки торрент-клиента.";
-        }
 
         if (formError != "")
         {
@@ -334,13 +360,17 @@ $( document ).ready(function()
         }
 
         ohSnap('Обрабатывается запрос...', 'yellow');
-        $.post("action.php",{action: 'update_settings', serverAddress: serverAddress, send: send, sendUpdate: sendUpdate,
-            sendUpdateEmail: sendUpdateEmail, sendUpdatePushover: sendUpdatePushover, sendWarning: sendWarning, sendWarningEmail: sendWarningEmail, sendWarningPushover: sendWarningPushover, auth: auth, proxy: proxy, proxyAddress: proxyAddress, torrent: torrent, torrentClient: torrentClient, torrentAddress: torrentAddress, torrentLogin: torrentLogin, torrentPassword: torrentPassword, pathToDownload: pathToDownload, deleteDistribution: deleteDistribution, deleteOldFiles: deleteOldFiles, rss: rss, debug: debug},
+        $.post("action.php",{action: 'update_settings', serverAddress: serverAddress, send: send, sendUpdate: sendUpdate, sendWarning: sendWarning, sendUpdateService: sendUpdateService, sendUpdateAddress: sendUpdateAddress, sendWarningService: sendWarningService, sendWarningAddress: sendWarningAddress, auth: auth, proxy: proxy, proxyType: proxyType, proxyAddress: proxyAddress, torrent: torrent, torrentClient: torrentClient, torrentAddress: torrentAddress, torrentLogin: torrentLogin, torrentPassword: torrentPassword, pathToDownload: pathToDownload, deleteDistribution: deleteDistribution, deleteOldFiles: deleteOldFiles, rss: rss, debug: debug},
             function(data) {
-                ohSnapX();
-                ohSnap(data, 'green');
-                $(s).removeAttr('disabled');
-            }
+                if (data.error)
+                {
+                    ohSnap(data.msg, 'red');
+                }
+                else
+                {
+                    ohSnap(data.msg, 'green');
+                }
+            }, "json"
         );
         return false;
     });
@@ -355,14 +385,10 @@ $( document ).ready(function()
             p2 = $form.find('input[name="password2"]').val();
             
         if (p == '')
-        {
             formError += "Пароль не может быть пустым.\n";
-        }
         
         if (p != p2) 
-        {
             formError += "Пароль и подтверждение должны совпадать.";
-        }
 
         if (formError != "")
         {
@@ -375,7 +401,6 @@ $( document ).ready(function()
             function(data) {
                 if (data.error)
                 {
-                    ohSnapX();
                     ohSnap(data, 'green');
                 }
                 else
@@ -388,15 +413,12 @@ $( document ).ready(function()
     //Вызов процедуры обновления
     $("#system_update").submit(function()
     {
-        $('#system_update').empty().append('<img src="img/ajax-loader.gif" class="loader">');
-        
         $.post("action.php",{action: 'system_update'},
             function(data) {
                 $('#system_update').empty().html(data);
             }
         );
     });
-
 });
 
 //Подгрузка страниц
@@ -448,14 +470,20 @@ function delete_user(id)
     	ohSnap('Обрабатывается запрос...', 'yellow');
     	$.post("action.php",{action: 'delete_user', user_id: id},
     		function(data) {
-    			ohSnapX();
-                ohSnap(data, 'green');
-    			$.get("include/show_watching.php",
-            		function(data) {
-            			$('#content').delay(3000).empty().append(data);
-            		}
-            	);
-    		}
+                if (data.error)
+                {
+                    ohSnap(data.msg, 'red');
+                }
+                else
+                {
+                    $.get("include/show_watching.php",
+            		    function(data) {
+            			    $('#content').delay(3000).empty().append(data);
+            		    }
+                    );
+                    ohSnap(data.msg, 'green');
+                }
+            }, "json"
     	);
     	return false;
     }
@@ -469,14 +497,20 @@ function delete_from_buffer(id)
     	ohSnap('Обрабатывается запрос...', 'yellow');
     	$.post("action.php",{action: 'delete_from_buffer', id: id},
     		function(data) {
-    			ohSnapX();
-                ohSnap(data, 'green');
-    			$.get("include/show_watching.php",
-            		function(data) {
-            			$('#content').delay(3000).empty().append(data);
-            		}
-            	);
-    		}
+    			if (data.error)
+                {
+                    ohSnap(data.msg, 'red');
+                }
+                else
+                {
+                    $.get("include/show_watching.php",
+            		    function(data) {
+            			    $('#content').delay(3000).empty().append(data);
+            		    }
+                    );
+                    ohSnap(data.msg, 'green');
+                }
+            }, "json"
     	);
     	return false;
     }
@@ -488,14 +522,20 @@ function transfer_from_buffer(id)
 	ohSnap('Обрабатывается запрос...', 'yellow');
 	$.post("action.php",{action: 'transfer_from_buffer', id: id},
 		function(data) {
-			ohSnapX();
-            ohSnap(data, 'green');
-			$.get("include/show_watching.php",
-        		function(data) {
-        			$('#content').delay(3000).empty().append(data);
-        		}
-        	);
-		}
+			if (data.error)
+                {
+                    ohSnap(data.msg, 'red');
+                }
+                else
+                {
+                    $.get("include/show_watching.php",
+            		    function(data) {
+            			    $('#content').delay(3000).empty().append(data);
+            		    }
+                    );
+                    ohSnap(data.msg, 'green');
+                }
+            }, "json"
 	);
 	return false;
 
@@ -509,8 +549,7 @@ function threme_add(id, user_id)
 		function(data) {
 			if (data.error)
 			{
-    			ohSnapX();
-                ohSnap('Ошибка передачи данных<br/>Попробуйте ещё раз.', 'green');
+                ohSnap('Ошибка передачи данных<br/>Попробуйте ещё раз.', 'red');
 			}
 			else
 			{
@@ -519,7 +558,7 @@ function threme_add(id, user_id)
 						$('#content').empty().append(data);
 					}
 				);
-				return false;				
+                ohSnap(data.msg, 'green');
 			}
 		}, "json"
 	);
@@ -534,25 +573,34 @@ function del(id, name)
     	ohSnap('Обрабатывается запрос...', 'yellow');
     	$.post("action.php",{action: 'del', id: id},
     		function(data) {
-    			ohSnapX();
-                ohSnap(data, 'green');
-    			$.get("include/show_table.php",
-            		function(data) {
-            			$('#content').delay(3000).empty().append(data);
-            		}
-            	);
-    		}
+        		if (data.error)
+    			{
+                    ohSnap(data.msg, 'red');
+    			}
+    			else
+    			{
+    				$.get("include/show_table.php",
+    					function(data) {
+    						$('#content').empty().append(data);
+    					}
+    				);
+                    ohSnap(data.msg, 'green');
+    			}
+    		}, "json"
     	);
     	return false;
     }
 }
 
-//Выводим логин/пароль в зависимости от выбранного в списке
-function changefunc() 
+//Выводим нужный div в зависимости от выбранного в списке
+function changeDiv(type)
 {
-    var select = document.getElementById("selectfunc");
+    var select = document.getElementById(type);
     var selectedText = select.options[select.selectedIndex].text;
-    var a = ['anidub.com', 'animelayer.ru', 'baibako.tv', 'casstudio.tv', 'kinozal.tv', 'lostfilm.tv', 'newstudio.tv', 'nnm-club.me', 'novafilm.tv', 'pornolab.net', 'rustorka.com', 'rutracker.org', 'tracker.0day.kiev.ua'];
+    if (type == 'notification' || type == 'warning')
+        var a = ['E-mail', 'Prowl', 'Pushbullet', 'Pushover'];
+    if (type == 'trackers')
+        var a = ['anidub.com', 'animelayer.ru', 'baibako.tv', 'casstudio.tv', 'hamsterstudio.org', 'kinozal.tv', 'lostfilm.tv', 'newstudio.tv', 'nnm-club.me', 'novafilm.tv', 'pornolab.net', 'rustorka.com', 'rutracker.org', 'tracker.0day.kiev.ua', 'tv.mekc.info'];
     for (var i = 0; i < a.length; i++)
     {
         var e = a[i];
@@ -561,7 +609,7 @@ function changefunc()
             d = "block";
         else
             d = "none";
-        document.getElementById(e + "_label").style.display = d;
+        document.getElementById(e + '_' + type + '_label').style.display = d;
     }
 }
 
@@ -569,7 +617,7 @@ function changefunc()
 function changeField()
 {
 	var tracker = document.getElementById("tracker").value;
-    if (tracker == 'baibako.tv' || tracker == 'newstudio.tv' || tracker == 'novafilm.tv')
+    if (tracker == 'baibako.tv' || tracker == 'hamsterstudio.org' || tracker == 'newstudio.tv' || tracker == 'novafilm.tv')
         $('#changedField').empty().append('<span class="quality"><input type="radio" name="hd" value="0"> SD<br /><input type="radio" name="hd" value="1"> HD 720<br /><input type="radio" name="hd" value="2"> HD 1080</span>');
 	if (tracker == 'lostfilm.tv' || tracker == 'lostfilm-mirror')
 		$('#changedField').empty().append('<span class="quality"><input type="radio" name="hd" value="0"> SD<br /><input type="radio" name="hd" value="1"> Автовыбор HD 720/1080<br /><input type="radio" name="hd" value="2"> HD 720 MP4');

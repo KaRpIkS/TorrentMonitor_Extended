@@ -321,6 +321,24 @@ body {
         background: #89b1b9 url(../img/bg.png) 0 0 repeat;
         color: #FFF;
         }
+        
+    .updatetime {
+        float: right;
+        text-align: right;
+        padding: 5px 10px;
+        background: #89b1b9 url(../img/bg.png) 0 0 repeat;
+        color: #FFF;
+        }
+    .dberror {
+        float: left;
+        text-align: left;
+        padding: 5px 10px;
+        margin-left: 20px;
+        margin-bottom: 3px;
+        background: #89b1b9 url(../img/bg.png) 0 0 repeat;
+        color: #FFF;
+        border: 1px #E2E6EF solid;
+        }   
     
 	.user-torrent-del {
 		margin-bottom: -16px;
@@ -336,7 +354,7 @@ body {
         background: url(../img/plus.png) 0 2px no-repeat;
         }
         
-        .user-torrent.active { background-image: url(../img/minus.png); }
+    .user-torrent.active { background-image: url(../img/minus.png); }
     
     .user-table { display: none; }
     

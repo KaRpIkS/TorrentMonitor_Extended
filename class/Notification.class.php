@@ -17,12 +17,16 @@ class Notification
     	}
 	}
 	
-	public static function sendMail($settingEmail, $date, $tracker, $message, $header_message, $name=0)
+	public static function sendMail($email, $date, $tracker, $message, $header_message, $name=0)
 	{
         $headers = 'From: TorrentMonitor'."\r\n";
 		$headers .= 'MIME-Version: 1.0'."\r\n";
 		$headers .= 'Content-type: text/html; charset=utf-8'."\r\n";
-		$msg = 'Дата: '.$date.'<br>Трекер: '.$tracker.'<br>Сообщение: '.$message."\r\n";
+		if (is_string($tracker))
+		    $msg = 'Дата: '.$date.'<br>Трекер: '.$tracker.'<br>Сообщение: '.$message."\r\n";
+        else
+            $msg = $message;
+
 		if ($name != '' || $name != 0)
 		{
     		if ($tracker == 'rutracker.org' || $tracker == 'nnm-club.me' || $tracker == 'tfile.me' || $tracker == 'torrents.net.ua' || $tracker == 'pornolab.net' || $tracker == 'rustorka.com')
@@ -37,13 +41,17 @@ class Notification
     		    $msg .= "http://casstudio.tv/viewtopic.php?t={$name}";
         }
 
-		mail($settingEmail, '=?UTF-8?B?'.base64_encode("TorrentMonitor: ".$header_message).'?=', $msg, $headers);
+		mail($email, '=?UTF-8?B?'.base64_encode("TorrentMonitor: ".$header_message).'?=', $msg, $headers);
 	}
 	
-	public static function sendPushover($sendUpdatePushover, $date, $tracker, $message)
+	public static function sendPushover($pushover, $date, $tracker, $message, $header_message)
 	{
-	    $msg = 'Дата: '.$date."\r\n".'Трекер: '.$tracker."\r\n".'Сообщение: '.$message."\r\n";
-        $postfields = 'token=a9784KuYUoUdT4z47BassBLxWQGqFV&user='.$sendUpdatePushover.'&message='.$msg;
+	    if (is_string($tracker))
+		    $msg = 'Дата: '.$date."\r\n".'Трекер: '.$tracker."\r\n".'Сообщение: '.$message."\r\n";
+        else
+            $msg = $message;
+
+        $postfields = 'token=a9784KuYUoUdT4z47BassBLxWQGqFV&user='.$pushover.'&message='.$msg;
         $forumPage = Sys::getUrlContent(
         	array(
         		'type'           => 'POST',
@@ -54,6 +62,44 @@ class Notification
         	)
         );
 	}
+	
+	public static function sendProwl($prowl, $date, $tracker, $message, $header_message)
+	{
+    	if (is_string($tracker))
+		    $msg = 'Дата: '.$date."\r\n".'Трекер: '.$tracker."\r\n".'Сообщение: '.$message."\r\n";
+        else
+            $msg = $message;
+
+        $postfields = 'apikey='.$prowl.'&application=TorrentMonitor&event=Notification&description='.$msg;
+        $forumPage = Sys::getUrlContent(
+            array(
+                'type'           => 'POST',
+                'header'         => 1,
+                'returntransfer' => 1,
+                'url'            => 'https://api.prowlapp.com/publicapi/add',
+                'postfields'     => $postfields,
+            )
+        );    	
+	}
+	
+	public static function sendPushbullet($pushbullet, $date, $tracker, $message, $header_message)
+	{
+    	if (is_string($tracker))
+		    $msg = 'Дата: '.$date."\r\n".'Трекер: '.$tracker."\r\n".'Сообщение: '.$message."\r\n";
+        else
+            $msg = $message;
+
+        $postfields = array('type' => 'note', 'title' => $header_message, 'body' => $msg);
+        $forumPage = Sys::getUrlContent(
+            array(
+                'type'           => 'POST',
+                'returntransfer' => 1,
+                'url'            => 'https://api.pushbullet.com/v2/pushes',
+                'userpwd'        => $pushbullet,
+                'postfields'     => $postfields,
+            )
+        );        
+	}
 
 	public static function sendNotification($type, $date, $tracker, $message, $name=0)
 	{
@@ -61,6 +107,8 @@ class Notification
 			$header_message = 'Предупреждение.';
 		if ($type == 'notification')
 			$header_message = 'Обновление.';
+        if ($type == 'news')
+			$header_message = 'Новость.';
 			
         $send = Database::getSetting('send');
         if ($send)
@@ -70,28 +118,29 @@ class Notification
                 $sendWarning = Database::getSetting('sendWarning');
                 if ($sendWarning)
                 {
-                    $sendWarningEmail = Database::getSetting('sendWarningEmail');
-                    if ( ! empty($sendWarningEmail))
-                        Notification::sendMail($sendWarningEmail, $date, $tracker, $message, $header_message);
-                        
-                    $sendWarningPushover = Database::getSetting('sendWarningPushover');
-                    if ( ! empty($sendWarningPushover))
-                        Notification::sendPushover($sendWarningPushover, $date, $tracker, $message, $header_message);
+                    $service = Database::getService('sendWarningService');
+                    if ($service['service'] == 'E-mail')
+                        $service['service'] = 'Mail';
+                    if ( ! empty($service['address']))
+                        call_user_func('Notification::send'.$service['service'], $service['address'], $date, $tracker, $message, $header_message);
                 }
             }
 
-            if ($type == 'notification')
+            if ($type == 'notification' || $type == 'news')
             {
                 $sendUpdate = Database::getSetting('sendUpdate');
                 if ($sendUpdate)
                 {
-                    $sendUpdateEmail = Database::getSetting('sendUpdateEmail');
-                    if ( ! empty($sendUpdateEmail))
-                        Notification::sendMail($sendUpdateEmail, $date, $tracker, $message, $header_message, $name);
-                        
-                    $sendUpdatePushover = Database::getSetting('sendUpdatePushover');
-                    if ( ! empty($sendUpdatePushover))
-                        Notification::sendPushover($sendUpdatePushover, $date, $tracker, $message, $header_message);
+                    $service = Database::getService('sendUpdateService');
+                    if ($service['service'] == 'E-mail')
+                        $service['service'] = 'Mail';
+                    if ($type == 'news')
+                    {
+                        $message = str_replace('<br>', "\r\n", $message);
+                        $message = strip_tags($message);
+                    }
+                    if ( ! empty($service['address']))
+                        call_user_func('Notification::send'.$service['service'], $service['address'], $date, $tracker, $message, $header_message);
                 }
             }
 		}
