@@ -143,7 +143,7 @@ class Sys
             }
             if ($proxy)
             {
-                curl_setopt($ch, CURLOPT_PROXY, $proxyAddress); 
+                curl_setopt($ch, CURLOPT_PROXY, $settingProxyAddress); 
                 $type = 'CURLPROXY_'.$proxyType;
                 curl_setopt($ch, CURLOPT_PROXYTYPE, $type);
             }
@@ -322,7 +322,7 @@ class Sys
         
         $script = Database::getScript($id);
         if ( ! empty($script['script']))
-            print(`{$script['script']} '{$file}' '{$tracker}' '{$name}' '{$id}' '{$hash}' '{$message}' '{$date_str}'`);
+            print(`{$script['script']} '{$tracker}' '{$name}' '{$id}' '{$hash}' '{$message}' '{$date_str}'`);
 
         $useTorrent = Database::getSetting('useTorrent');
         if ($useTorrent)
