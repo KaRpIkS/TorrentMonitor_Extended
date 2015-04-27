@@ -213,5 +213,10 @@ class lostfilmmirror
     public static function getTrackerType() {
         return 'series';
     }
+
+    // функция возвращает признак использования авторизации на треккере
+    public static function useAuthentication() {
+        return false;
+    }
 }
 ?>

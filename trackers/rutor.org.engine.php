@@ -159,5 +159,10 @@ class rutororg
         preg_match('/\d{4,8}/', $url['path'], $array);
         return $array[0];
     }
+
+    // функция возвращает признак использования авторизации на треккере
+    public static function useAuthentication() {
+        return false;
+    }
 }
 ?>

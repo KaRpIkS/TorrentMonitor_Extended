@@ -42,16 +42,23 @@ abstract class Notifier extends Plugin
         return (($value == '1') || ($value == 'true'));
     }
 
+    final public function SendNews()
+    {
+        $value = $this->GetProperty('sendNews');
+        return (($value == '1') || ($value == 'true'));
+    }
+
     final public function SendAddress()
     {
         return $this->GetProperty('sendAddress');
     }
 
-    final public function SetParams($address, $sendUpdate, $sendWarning)
+    final public function SetParams($address, $sendUpdate, $sendWarning, $sendNews)
     {
         $this->SetProperty('sendAddress', $address);
         $this->SetProperty('sendUpdate', $sendUpdate);
         $this->SetProperty('sendWarning', $sendWarning);
+        $this->SetProperty('sendNews', $sendNews);
     }
 
     public static function Create($notifierName, $group="")
@@ -83,6 +90,11 @@ abstract class Notifier extends Plugin
         {
             $header_message = 'Torrent Monitor. Обновление.';
         }
+        else
+        if ($type == 'news')
+        {
+            $header_message = 'Torrent Monitor. Новость.';
+        }
 
         foreach (Database::getActivePluginsByType(Notifier::$type) as $plugin)
         {
@@ -93,8 +105,9 @@ abstract class Notifier extends Plugin
                 continue;
             }
 
-            if ((($type == 'warning') and $notifier->SendWarning()) or
-                (($type == 'notification') and $notifier->SendUpdate()))
+            if ( (($type == 'warning') and $notifier->SendWarning()) or
+                (($type == 'notification') and $notifier->SendUpdate()) or
+                (($type == 'news') and $notifier->SendNews()) )
             {
                 $sendAddress = $notifier->SendAddress();
                 if ( empty($sendAddress) )
@@ -134,5 +147,15 @@ abstract class Notifier extends Plugin
             }
         }
     }
+
+    public function messageText($tracker, $date, $message)
+    {
+    	if (is_string($tracker) && !empty($tracker) )
+            $msg = 'Дата: '.$date."\r\n".'Трекер: '.$tracker."\r\n".'Сообщение: '.$message."\r\n";
+        else
+            $msg = $message;
+        return $msg;
+    }
+
 }
 ?>

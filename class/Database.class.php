@@ -167,7 +167,7 @@ class Database
         if ($stmt->execute())
             $result = TRUE;
         else
-            $result = FALSE;
+            $result = $stmt->errorInfo();
         $stmt = NULL;
         return $result;
     }
@@ -361,24 +361,16 @@ class Database
             if ( ! empty($resultArray))
                 return $resultArray;
         }
+        else
+            return 'Ошибка в функции: '.__CLASS__.'::'.__FUNCTION__.': '.$stmt->errorInfo()[2];
         $stmt = NULL;
         $resultArray = NULL;
     }
     
     public static function getTorrent($id)
     {
-        if (Database::getDbType() == 'pgsql')
-        {
-            $stmt = Database::getInstance()->dbh->prepare("SELECT id, tracker, name, hd, path, torrent_id, auto_update FROM torrent WHERE id = {$id}");
-        }
-        elseif (Database::getDbType() == 'mysql')
-        {
-            $stmt = Database::getInstance()->dbh->prepare("SELECT `id`, `tracker`, `name`, `hd`, `path`, `torrent_id`, `auto_update` FROM `torrent` WHERE `id` = '{$id}'");
-        }
-        elseif (Database::getDbType() == 'sqlite')
-        {
-            $stmt = Database::getInstance()->dbh->prepare("SELECT `id`, `tracker`, `name`, `hd`, `path`, `torrent_id`, `auto_update` FROM `torrent` WHERE `id` = '{$id}'");         
-        }
+        $stmt = self::newStatement("SELECT `id`, `tracker`, `name`, `hd`, `path`, `torrent_id`, `auto_update`, `script` FROM `torrent` WHERE `id` = :id");
+        $stmt->bindParam(':id', $id);
         if ($stmt->execute())
         {
             $i = 0;
@@ -391,6 +383,7 @@ class Database
                 $resultArray[$i]['path'] = $row['path'];
                 $resultArray[$i]['torrent_id'] = $row['torrent_id'];
                 $resultArray[$i]['auto_update'] = $row['auto_update'];
+                $resultArray[$i]['script'] = $row['script'];
             }
             if ( ! empty($resultArray))
                 return $resultArray;
@@ -565,7 +558,7 @@ class Database
                 $threme = $row['threme_id'];
                 $name = $row['threme'];
                 $tracker = $row['tracker'];
-                Database::setThreme($tracker, $name, '', $threme);
+                Database::setThreme($tracker, $name, '', $threme, 0);
                 Database::deleteFromBuffer($id);
             }
         }
@@ -694,13 +687,14 @@ class Database
         $stmt = NULL;
     }
     
-    public static function setThreme($tracker, $name, $path, $threme)
+    public static function setThreme($tracker, $name, $path, $threme, $update_header)
     {
-        $stmt = self::newStatement("INSERT INTO `torrent` (`tracker`, `name`, `path`, `torrent_id`) VALUES (:tracker, :name, :path, :threme)");        
+        $stmt = self::newStatement("INSERT INTO `torrent` (`tracker`, `name`, `path`, `torrent_id`, `auto_update`) VALUES (:tracker, :name, :path, :threme, :update_header)");        
         $stmt->bindParam(':tracker', $tracker);
         $stmt->bindParam(':name', $name);
         $stmt->bindParam(':path', $path);
         $stmt->bindParam(':threme', $threme);
+        $stmt->bindParam(':update_header', $update_header);
         if ($stmt->execute())
             return TRUE;
         else
@@ -744,14 +738,15 @@ class Database
         $stmt = NULL;
     }
     
-    public static function updateSerial($id, $name, $path, $hd, $reset)
+    public static function updateSerial($id, $name, $path, $hd, $reset, $script)
     {
         if ($reset)
-            $stmt = self::newStatement("UPDATE `torrent` SET `name` = :name, `path` = :path, `hd` = :hd, `ep` = '', `timestamp` = '0000-00-00 00:00:00' WHERE `id` = :id");
+            $stmt = self::newStatement("UPDATE `torrent` SET `name` = :name, `path` = :path, `hd` = :hd, `ep` = '', `timestamp` = '0000-00-00 00:00:00', `script` = :script WHERE `id` = :id");
         else
-            $stmt = self::newStatement("UPDATE `torrent` SET `name` = :name, `path` = :path, `hd` = :hd WHERE `id` = :id");
+            $stmt = self::newStatement("UPDATE `torrent` SET `name` = :name, `path` = :path, `hd` = :hd, `script` = :script WHERE `id` = :id");
         $stmt->bindParam(':name', $name);
         $stmt->bindParam(':path', $path);
+        $stmt->bindParam(':script', $script);
         $stmt->bindParam(':hd', $hd);
         $stmt->bindParam(':id', $id);
         if ($stmt->execute())
@@ -761,11 +756,12 @@ class Database
         $stmt = NULL;
     }
     
-    public static function updateThreme($id, $name, $path, $threme, $update, $reset)
+    public static function updateThreme($id, $name, $path, $threme, $update, $reset, $script)
     {
-        $stmt = self::newStatement("UPDATE `torrent` SET `name` = :name, `path` = :path, `torrent_id` = :torrent_id, `auto_update`=:auto_update WHERE `id` = :id");
+        $stmt = self::newStatement("UPDATE `torrent` SET `name` = :name, `path` = :path, `torrent_id` = :torrent_id, `auto_update`= :auto_update, `script` = :script WHERE `id` = :id");
         $stmt->bindParam(':name', $name);
         $stmt->bindParam(':path', $path);
+        $stmt->bindParam(':script', $script);
         $stmt->bindParam(':torrent_id', $threme);
         $stmt->bindParam(':auto_update', $update);
         $stmt->bindParam(':id', $id);
@@ -1075,6 +1071,43 @@ class Database
         else
             return FALSE;
         $stmt = NULL;
+    }
+    
+    //
+    public static function getScript($id)
+    {
+        $stmt = self::newStatement("SELECT `script` FROM `torrent` WHERE `id` = :id");        
+        $stmt->bindParam(':id', $id);
+        if ($stmt->execute())
+        {
+            foreach ($stmt as $row)
+            {
+                $resultArray['script'] = $row['script'];
+            }
+            if ( ! empty($resultArray))
+                return $resultArray;
+        }
+        $stmt = NULL;
+        $resultArray = NULL;
+    }
+      
+    public static function getProxy()
+    {
+        $stmt = self::newStatement("SELECT `key`, `val` FROM `settings` WHERE `key` LIKE 'proxy%' ORDER BY `id`");
+        if ($stmt->execute())
+        {
+            $i=0;
+            foreach ($stmt as $row)
+            {
+                $resultArray[$row['key']] = $row['val'];
+            }
+            if ( ! empty($resultArray))
+                return $resultArray;
+        }
+        else
+            return $stmt->errorInfo();
+        $stmt = NULL;
+        $resultArray = NULL;
     }
 
     public static function getPluginSetting($plugin, $setting)

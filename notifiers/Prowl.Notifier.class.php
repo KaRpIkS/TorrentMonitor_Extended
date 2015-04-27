@@ -3,37 +3,38 @@
 include_once dirname(__FILE__).'/../class/Notifier.class.php';
 include_once dirname(__FILE__).'/../class/Errors.class.php';
 
-class PushoverNotifier extends Notifier
+class ProwlNotifier extends Notifier
 {
     public function VerboseName()
     {
-        return "PushOver";
+        return "Prowl";
     }
 
     public function Description()
     {
-        return "Сервис уведомлений <a href='https://pushover.net/'>Pushover</a>";
+        return "Сервис уведомлений <a href='http://www.prowlapp.com/'>Prowl</a>";
     }
 
     protected function localSend($type, $date, $tracker, $message, $header_message, $name=0)
     {
         if ($type == 'warning')
-            $priority = 1;
+            $priority = 2;
         else
             $priority = 0;
-
+        
         $msg = $this->messageText($tracker, $date, $message);
-        $postfields = 'token=a9784KuYUoUdT4z47BassBLxWQGqFV&user='.$this->SendAddress().'&message='.$msg.'&title='.$header_message.'&priority='.$priority;
+        $postfields = 'apikey='.$this->SendAddress().'&application=TorrentMonitor&priority'.$priority.'&event=Notification&description='.$msg;
         $response = Sys::getUrlContent(
             array(
                 'type'           => 'POST',
                 'header'         => 1,
                 'returntransfer' => 1,
-                'url'            => 'https://api.pushover.net/1/messages.json',
+                'url'            => 'https://api.prowlapp.com/publicapi/add',
                 'postfields'     => $postfields,
             )
-        );
-        return array('success' => preg_match('/\"status\":1/', $response), 'response' => $response);
+        );    	
+        return array('success' => preg_match('/success code=\"200\"/', $response), 'response' => $response);
+
     }
 }
 

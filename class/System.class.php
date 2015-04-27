@@ -4,15 +4,6 @@ include_once dirname(__FILE__).'/Notifier.class.php';
 
 class Sys
 {
-    //ф-ция преобразования true/false в int
-    public static function strBoolToInt($value)
-    {
-        if ($value == 'true')
-            return 1;
-        else
-            return 0;
-    }
-
     //проверяем есть ли интернет
     public static function checkInternet()
     {
@@ -77,7 +68,7 @@ class Sys
     //версия системы
     public static function version()
     {
-        return '1.2.2';
+        return '1.2.3';
     }
 
     //проверка обновлений системы
@@ -89,12 +80,13 @@ class Sys
                 )
             ));
 
-        $xmlstr = @file_get_contents('http://korphome.ru/torrent_monitor/version.xml', false, $opts);
+        $xmlstr = @file_get_contents('http://vlmaksime.github.io/tme/version.xml', false, $opts);
         $xml = @simplexml_load_string($xmlstr);
-
+ 
         if (false !== $xml)
         {
-            if (Sys::version() < $xml->current_version)
+            $latestVersion = (string) $xml->current_version;
+            if ( version_compare(Sys::version(), $latestVersion, '<') )
                 return TRUE;
             else
                 return FALSE;
@@ -143,33 +135,41 @@ class Sys
             if (isset($param['referer']))
                 curl_setopt($ch, CURLOPT_REFERER, $param['referer']);
 
-            $settingProxy = Database::getSetting('proxy');
-			$settingAutoProxy = Database::getSetting('autoProxy');
-            if ($settingProxy)
+            if (isset($param['userpwd']))
+                curl_setopt($ch, CURLOPT_USERPWD, $param['userpwd']);
+
+            $settingProxy = Database::getProxy();
+            if (is_array($settingProxy))
             {
-				$settingProxyAddress = Database::getSetting('proxyAddress');
-				if ($settingAutoProxy)
-				{
-					if (Sys::checkAndUpdateBlockedIPs())
-					{
-						if(Database::checkIPExist(gethostbyname(parse_url($param['url'], PHP_URL_HOST))))
-						{
-							curl_setopt($ch, CURLOPT_PROXY, '$settingProxyAddress');
-							curl_setopt($ch, CURLOPT_PROXYTYPE, CURLPROXY_HTTP);
-						}
-					}
-					else Errors::setWarnings('BlockListIP', 'update_blocklist_ip_fail');
-				}
-				else
-				{
-					curl_setopt($ch, CURLOPT_PROXY, $settingProxyAddress); 
-					curl_setopt($ch, CURLOPT_PROXYTYPE, CURLPROXY_SOCKS5);
-				}
+                $proxy = $settingProxy['proxy'];
+                $proxyAddress = $settingProxy['proxyAddress'];
+                $proxyType = $settingProxy['proxyType'];
             }
-            
+            if ($proxy)
+            {
+                $settingAutoProxy = Database::getSetting('autoProxy');
+                $useProxy = true;
+                if ($settingAutoProxy)
+                {
+                    if (Sys::checkAndUpdateBlockedIPs())
+                    {
+                        if(! Database::checkIPExist(gethostbyname(parse_url($param['url'], PHP_URL_HOST))))
+                        {
+                            $useProxy = false;
+                        }
+                    }
+                    else Errors::setWarnings('BlockListIP', 'update_blocklist_ip_fail');
+                }
+                if ($useProxy)
+                {
+                    curl_setopt($ch, CURLOPT_PROXY, $proxyAddress); 
+                    $type = 'CURLPROXY_'.$proxyType;
+                    curl_setopt($ch, CURLOPT_PROXYTYPE, $type);
+                }
+            }
 
             $curl = curl_version();
-            if (substr($curl["ssl_version"], 0, 3) == 'NSS')
+            if (substr($curl["ssl_version"], 0, 3) == 'NSS' && strstr($param['url'], 'lostfilm.tv'))
                 curl_setopt($ch, CURLOPT_SSL_CIPHER_LIST, 'ecdhe_ecdsa_aes_128_sha');
 
             if (Database::getSetting('debug'))
@@ -196,17 +196,20 @@ class Sys
                 'url'            => $tracker,
             )
         );
+        
         if (preg_match('/HTTP\/1\.1 200 OK/', $page))
             return true;
         else
             return false;
     }
+    
     //Получаем заголовок страницы
     public static function getHeader($url)
     {
         $Purl = parse_url($url);
         $tracker = $Purl['host'];
         $tracker = preg_replace('/www\./', '', $tracker);
+        
         if ($tracker == 'rutor.org')
             $url = preg_replace('/rutor.org/', 'alt.rutor.org', $url);
 
@@ -337,6 +340,10 @@ class Sys
         file_put_contents($path, $torrent);
         $messageAdd = ' И сохранён.';
 
+        $script = Database::getScript($id);
+        if ( ! empty($script['script']))
+            print(`{$script['script']} '{$file}' '{$tracker}' '{$name}' '{$id}' '{$hash}' '{$message}' '{$date_str}'`);
+
         $useTorrent = Database::getSetting('useTorrent');
         if ($useTorrent)
             $messageAdd = Sys::addToClient($id, $path, $hash, $tracker, $message, $date_str);
@@ -398,13 +405,29 @@ class Sys
                 'url'            => 'http://korphome.ru/torrent_monitor/news.xml',
             )
         );
+
         //читаем xml
         $page = @simplexml_load_string($page);
+        if ( ! empty($page))
+        {
         for ($i=0; $i<count($page->news->id); $i++)
         {
             if ( ! Database::checkNewsExist($page->news->id[$i]))
-                Database::insertNews($page->news->id[$i], $page->news->text[$i]);
+                {
+                    Database::insertNews($page->news->id[$i], $page->news->text[$i]);
+                    Notifier::send('news', date('r'), 0, $page->news->text[$i], 0);
+                }
+            }
         }
+    }
+    
+    //ф-ция преобразования true/false в int
+    public static function strBoolToInt($value)
+    {
+        if ($value == 'true')
+            return 1;
+        else
+            return 0;
     }
 
     //проверяем авторизован пользователь или нет (если авторизация включена)
@@ -417,6 +440,9 @@ class Sys
 
         if ($auth)
         {
+            if (isset($_COOKIE['TM']))
+                $_SESSION['TM'] = $_COOKIE['TM'];
+            
             if (empty($_SESSION['TM']))
                 return FALSE;
 

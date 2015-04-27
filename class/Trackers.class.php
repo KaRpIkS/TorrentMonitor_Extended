@@ -193,5 +193,20 @@ class Trackers {
         }
         return $result;
     }
+
+    // функция возвращает признак использования авторизации на треккере
+    // параметры:
+    //    tracker     - имя треккера
+    // результат:
+    //    возвращается булевое значение
+    public static function useAuthentication($tracker) {
+        
+        $trackerClass = Trackers::getClassName($tracker);
+        
+        $result = true;
+        if ( $trackerClass != null && method_exists($trackerClass, 'useAuthentication') )
+            $result = $trackerClass::useAuthentication();
+        return $result;
+    }
 }
 ?>

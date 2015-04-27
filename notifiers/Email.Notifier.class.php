@@ -21,7 +21,7 @@ class EmailNotifier extends Notifier
         $headers = 'From: TorrentMonitor'."\r\n";
         $headers .= 'MIME-Version: 1.0'."\r\n";
         $headers .= 'Content-type: text/html; charset=utf-8'."\r\n";
-        $msg = 'Дата: '.$date.'<br>Трекер: '.$tracker.'<br>Сообщение: '.$message."\r\n";
+        $msg = $this->messageText($tracker, $date, $message);
         if ($name != '' || $name != 0)
         {
             if ($tracker == 'rutracker.org' || $tracker == 'nnm-club.me' || $tracker == 'tfile.me' || $tracker == 'torrents.net.ua' || $tracker == 'pornolab.net' || $tracker == 'rustorka.com')

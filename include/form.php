@@ -43,6 +43,7 @@ $tpl->assign( "torrent_url", Trackers::generateURL($tracker, $torrent_id) );
 $tpl->assign( "auto_update", $auto_update );
 $tpl->assign( "input", $input );
 $tpl->assign( "path", $path );
+$tpl->assign( "script", $script );
 $tpl->assign( "paths", Database::getPaths() );
 
 $tpl->draw( 'form' );

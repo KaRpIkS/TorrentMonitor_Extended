@@ -168,5 +168,10 @@ class tfileme
     public static function generateURL($tracker, $torrent_id) {
         return 'http://'.$tracker.'/forum/viewtopic.php?t='.$torrent_id;
     }
+
+    // функция возвращает признак использования авторизации на треккере
+    public static function useAuthentication() {
+        return false;
+    }
 }
 ?>

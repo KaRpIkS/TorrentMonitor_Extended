@@ -30,14 +30,19 @@ foreach (Database::getActivePluginsByType(Notifier::$type) as $plugin)
 
     $needSendUpdate = "";
     $needSendWarning = "";
+    $needSendNews = "";
     if ($notifier->SendUpdate() == TRUE)
         $needSendUpdate = 'checked';
     if ($notifier->SendWarning() == TRUE)
         $needSendWarning = 'checked';
+    if ($notifier->SendNews() == TRUE)
+        $needSendNews = 'checked';
 
     $notifiersList[] = array('notifier' => $notifier,
                              'needSendUpdate' => $needSendUpdate,
-                             'needSendWarning' => $needSendWarning);
+                             'needSendWarning' => $needSendWarning,
+                             'needSendNews' => $needSendNews,
+                            );
 }
 
 $tpl->assign( 'notifiersList', $notifiersList );

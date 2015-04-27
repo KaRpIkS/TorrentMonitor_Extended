@@ -22,9 +22,9 @@ if (isset($_POST['action']))
             session_start();
             $_SESSION['TM'] = $password;
             $return['error'] = FALSE;
+            if ($_POST['remember'] == 'true')
+                setcookie('TM', $password, time()+3600*24*31);
             $return['msg'] = 'Вход выполнен успешно.';
-            if (isset($_POST['remember']) && $_POST['remember'])
-                setcookie('hash_pass', $password, time()+3600*24*31);
         }
         else
         {
@@ -55,35 +55,40 @@ if (isset($_POST['action']))
                             else
                                 $name = Sys::getHeader($_POST['url']);
                             
-                            Database::setThreme($tracker, $name, $_POST['path'], $threme);
-                            
-                            echo 'Тема добавлена для мониторинга.';
+                            Database::setThreme($tracker, $name, $_POST['path'], $threme, Sys::strBoolToInt($_POST['update_header']));
+                            $return['error'] = FALSE;
+                            $return['msg'] = 'Тема добавлена для мониторинга.';
                         }
                         else
                         {
-                            echo 'Вы уже следите за данной темой на трекере <b>'.$tracker.'</b>.';
+                            $return['error'] = TRUE;
+                            $return['msg'] = 'Вы уже следите за данной темой на трекере <b>'.$tracker.'</b>.';
                         }
                     }
                     else
                     {
-                        echo 'Не верная ссылка.';
+                        $return['error'] = TRUE;
+                        $return['msg'] = 'Не верная ссылка.';
                     }
                 }
                 else
                 {
-                    echo 'Отсутствует модуль для трекера - <b>'.$tracker.'</b>.';
+                    $return['error'] = TRUE;
+                    $return['msg'] = 'Отсутствует модуль для трекера - <b>'.$tracker.'</b>.';
                 }
             }
             else
             {
-                echo 'Вы не можете следить за этим сериалом на трекере - <b>'.$tracker.'</b>, пока не введёте свои учётные данные!';
+                $return['error'] = TRUE;
+                $return['msg'] = 'Вы не можете следить за этим сериалом на трекере - <b>'.$tracker.'</b>, пока не введёте свои учётные данные!';
             }
         }
         else
         {
-            echo 'Не верная ссылка.';
+            $return['error'] = TRUE;
+            $return['msg'] = 'Не верная ссылка.';
         }
-        return TRUE;
+        echo json_encode($return);
     }
     
     //Добавляем сериал для мониторинга
@@ -99,36 +104,40 @@ if (isset($_POST['action']))
                     if (Database::checkSerialExist($tracker, $_POST['name'], $_POST['hd'])) 
                     {
                         Database::setSerial($tracker, $_POST['name'], $_POST['path'], $_POST['hd']);
-                        
-                        echo 'Сериал добавлен для мониторинга.';
+                        $return['error'] = FALSE;
+                        $return['msg'] = 'Сериал добавлен для мониторинга.';
                     }
                     else
                     {
-                        echo 'Вы уже следите за данным сериалом на этом трекере - <b>'.$tracker.'</b>.';
+                        $return['error'] = TRUE;
+                        $return['msg'] = 'Вы уже следите за данным сериалом на этом трекере - <b>'.$tracker.'</b>.';
                     }
                 }
                 else
                 {
-                    echo 'Название содержит недопустимые символы.';
+                    $return['error'] = TRUE;
+                    $return['msg'] = 'Название содержит недопустимые символы.';
                 }
             }
             else
             {
-                echo 'Отсутствует модуль для трекера - <b>'.$tracker.'</b>.';
+                $return['error'] = TRUE;
+                $return['msg'] = 'Отсутствует модуль для трекера - <b>'.$tracker.'</b>.';
             }
         }
         else
         {
-            echo 'Вы не можете следить за этим сериалом на трекере - <b>'.$tracker.'</b>, пока не введёте свои учётные данные!';
+            $return['error'] = TRUE;
+            $return['msg'] = 'Вы не можете следить за этим сериалом на трекере - <b>'.$tracker.'</b>, пока не введёте свои учётные данные!';
         }
-        return TRUE;
+        echo json_encode($return);
     }
     
     //Обновляем отслеживаемый item
     if ($_POST['action'] == 'update')
     {
         $tracker = $_POST['tracker'];
-        $reset   = ($_POST['reset'] == 'true') ? 1 : 0;
+        $reset   = Sys::strBoolToInt($_POST['reset']);
         
         $trackerType = Trackers::getTrackerType($tracker);
         
@@ -136,13 +145,15 @@ if (isset($_POST['action']))
         {
             if (Trackers::checkRule($tracker ,$_POST['name']))    
             {
-                Database::updateSerial($_POST['id'], $_POST['name'], $_POST['path'], $_POST['hd'], $reset);
+                Database::updateSerial($_POST['id'], $_POST['name'], $_POST['path'], $_POST['hd'], $reset, $_POST['script']);
                 
-                echo 'Сериал обновлён.';
+                $return['error'] = FALSE;
+                $return['msg'] = 'Сериал обновлён.';
             }
             else
             {
-                echo 'Название содержит недопустимые символы.';
+                $return['error'] = TRUE;
+                $return['msg'] = 'Название содержит недопустимые символы.';
             }
         }
         else if ($trackerType == 'threme')
@@ -151,19 +162,22 @@ if (isset($_POST['action']))
             $tracker = Trackers::getTrackerName( preg_replace('/www\./', '', $url['host']) );
             $threme  = Trackers::getThreme($tracker, $_POST['url']);
             
-            $update = ($_POST['update'] == 'true') ? 1 : 0;
+            $update = Sys::strBoolToInt($_POST['update']);
             
             if (Trackers::checkRule($tracker, $threme))
             {
-                Database::updateThreme($_POST['id'], $_POST['name'], $_POST['path'], $threme, $update, $reset);
+                Database::updateThreme($_POST['id'], $_POST['name'], $_POST['path'], $threme, $update, $reset, $_POST['script']);
                 
-                echo 'Тема обновлена.';
+                $return['error'] = FALSE;
+                $return['msg'] = 'Тема обновлена.';
             }
             else
             {
-                echo 'Название содержит недопустимые символы.';
+                $return['error'] = TRUE;
+                $return['msg'] = 'Не верный ID темы.';
             }
         }
+        echo json_encode($return);
     }
     
     //Добавляем пользователя для мониторинга
@@ -176,45 +190,46 @@ if (isset($_POST['action']))
             {
                 if (Database::checkUserExist($tracker, $_POST['name'])) 
                 {
-                    Database::setUser($tracker, $_POST['name']);
-                    
-                    echo 'Пользователь добавлен для мониторинга.';
+                    Database::setUser($tracker, $_POST['name']);                   
+                    $return['error'] = FALSE;
+                    $return['msg'] = 'Пользователь добавлен для мониторинга.';
                 }
                 else
                 {
-                    echo 'Вы уже следите за данным пользователем на этом трекере - <b>'.$tracker.'</b>.';
+                    $return['error'] = TRUE;
+                    $return['msg'] = 'Вы уже следите за данным пользователем на этом трекере - <b>'.$tracker.'</b>.';
                 }
             }
             else
             {
-                echo 'Отсутствует модуль для трекера - <b>'.$tracker.'</b>.';
+                $return['error'] = TRUE;
+                $return['msg'] = 'Отсутствует модуль для трекера - <b>'.$tracker.'</b>.';
             }
         }
         else
         {
-            echo 'Вы не можете следить за этим пользователем на трекере - <b>'.$tracker.'</b>, пока не введёте свои учётные данные!';
+            $return['error'] = TRUE;
+            $return['msg'] = 'Вы не можете следить за этим пользователем на трекере - <b>'.$tracker.'</b>, пока не введёте свои учётные данные!';
         }
-        return TRUE;
+        echo json_encode($return);
     }
     
     //Удаляем пользователя из мониторинга и все его темы
     if ($_POST['action'] == 'delete_user')
     {
         Database::deletUser($_POST['user_id']);
-        
-        echo 'Удаляю...';
-        
-        return TRUE;
+        $return['error'] = FALSE;
+        $return['msg'] = 'Слежение за пользователем удалено.';
+        echo json_encode($return);
     }
     
     //Удаляем тему из буфера
     if ($_POST['action'] == 'delete_from_buffer')
     {
         Database::deleteFromBuffer($_POST['id']);
-        
-        echo 'Удаляю...';
-        
-        return TRUE;
+        $return['error'] = FALSE;
+        $return['msg'] = 'Тема удалена из буфера.';
+        echo json_encode($return);
     }
     
     //Очищаем весь список тем
@@ -225,17 +240,19 @@ if (isset($_POST['action']))
         {
             Database::deleteFromBuffer($array[$i]['id']);
         }
-        return TRUE;
+        Database::deleteFromBuffer($_POST['id']);
+        $return['error'] = FALSE;
+        $return['msg'] = 'Буфер очищен.';
+        echo json_encode($return);
     }
     
     //Перемещаем тему из буфера в мониторинг постоянный
     if ($_POST['action'] == 'transfer_from_buffer')
     {
         Database::transferFromBuffer($_POST['id']);
-        
-        echo 'Переношу...';
-        
-        return TRUE;
+        $return['error'] = FALSE;
+        $return['msg'] = 'Тема перенесена из буфера.';
+        echo json_encode($return);
     }
     
     //Помечаем тему для скачивания
@@ -258,10 +275,9 @@ if (isset($_POST['action']))
     if ($_POST['action'] == 'del')
     {
         Database::deletItem($_POST['id']);
-        
-        echo 'Удаляю...';
-        
-        return TRUE;
+        $return['error'] = FALSE;
+        $return['msg'] = 'Удалено.';
+        echo json_encode($return);
     }
     
     //Обновляем личные данные
@@ -270,10 +286,9 @@ if (isset($_POST['action']))
         if ( ! isset($_POST['passkey']))
             $_POST['passkey'] = '';
         Database::setCredentials($_POST['id'], $_POST['log'], $_POST['pass'], $_POST['passkey']);
-        
-        echo 'Данные для трекера обновлены!';
-        
-        return TRUE;
+        $return['error'] = FALSE;
+        $return['msg'] = 'Данные для трекера обновлены.';
+        echo json_encode($return);
     }
     
     //Обновляем настройки
@@ -283,6 +298,7 @@ if (isset($_POST['action']))
         Database::updateSettings('auth', Sys::strBoolToInt($_POST['auth']));
         Database::updateSettings('proxy', Sys::strBoolToInt($_POST['proxy']));
         Database::updateSettings('autoProxy', Sys::strBoolToInt($_POST['autoProxy']));
+        Database::updateSettings('proxyType', $_POST['proxyType']);
         Database::updateSettings('proxyAddress', $_POST['proxyAddress']);
         Database::updateSettings('useTorrent', Sys::strBoolToInt($_POST['torrent']));
         Database::updateSettings('torrentClient', $_POST['torrentClient']);
@@ -295,9 +311,9 @@ if (isset($_POST['action']))
         Database::updateSettings('rss', Sys::strBoolToInt($_POST['rss']));
         Database::updateSettings('debug', Sys::strBoolToInt($_POST['debug']));
         
-        echo 'Настройки монитора обновлены.';
-        
-        return TRUE;
+        $return['error'] = FALSE;
+        $return['msg'] = 'Настройки монитора обновлены.';
+        echo json_encode($return);
     }
     
     if ($_POST['action'] == 'updateNotifierSettings')
@@ -307,11 +323,12 @@ if (isset($_POST['action']))
         {
             $notifier = Notifier::Create($settings['notifier'], $settings['group']);
             if ($notifier != NULL)
-                $notifier->SetParams($settings['address'], $settings['sendUpdate'], $settings['sendWarning']);
+                $notifier->SetParams($settings['address'], $settings['sendUpdate'], $settings['sendWarning'], $settings['sendNews']);
             $notifier = NULL;
         }
-        echo "Настройки уведомлений обновлены.";
-        return TRUE;
+        $return['error'] = FALSE;
+        $return['msg'] = 'Настройки уведомлений обновлены.';
+        echo json_encode($return);
     }
     
     //Меняем пароль
@@ -322,6 +339,7 @@ if (isset($_POST['action']))
         if ($q)
         {
             $return['error'] = FALSE;
+            $return['msg'] = 'Пароль успешно изменен.';
         }
         else
         {
@@ -341,8 +359,9 @@ if (isset($_POST['action']))
             {
                 Database::updateDownloadThreme($id);
             }
-            echo count($arr).' тем помечено для закачки.';
-            return TRUE;
+            $return['error'] = FALSE;
+            $return['msg'] = count($arr).' тем помечено для закачки.';
+            echo json_encode($return);
         }
         Database::updateDownloadThremeNew();
     }

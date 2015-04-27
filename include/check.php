@@ -52,13 +52,16 @@ if (Sys::checkInternet())
             }
             
             $contents[] = array('text' => 'Отправка тестовых уведомлений об обновлениях', 'error' => false);
-            $result = Notifier::send('notification', date('Y-m-d H:i:s'), 'TorrentMonitor notifier', 'Тест уведомлений об обновлениях', '');
+            $result = Notifier::send('notification', date('Y-m-d H:i:s'), '', 'Тест уведомлений об обновлениях', '');
             $contents[] = array('text' => $result, 'error' => false);
 
             $contents[] = array('text' => 'Отправка тестовых уведомлений об ошибках', 'error' => false);
-            $result = Notifier::send('warning', date('Y-m-d H:i:s'), 'TorrentMonitor notifier', 'Тест уведомлений об ошибках', '');
+            $result = Notifier::send('warning', date('Y-m-d H:i:s'), '', 'Тест уведомлений об ошибках', '');
             $contents[] = array('text' => $result, 'error' => false);
 
+            $contents[] = array('text' => 'Отправка тестовых уведомлений с новостями', 'error' => false);
+            $result = Notifier::send('news', date('Y-m-d H:i:s'), '', 'Тест уведомлений с новостями', '');
+            $contents[] = array('text' => $result, 'error' => false);
 
             if ($torrentClient == 'Deluge')
             {

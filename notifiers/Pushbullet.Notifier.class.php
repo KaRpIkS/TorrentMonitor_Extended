@@ -17,7 +17,7 @@ class PushbulletNotifier extends Notifier
 
     protected function localSend($type, $date, $tracker, $message, $header_message, $name=0)
     {
-        $msg = 'Дата: '.$date."\r\n".'Трекер: '.$tracker."\r\n".'Сообщение: '.$message."\r\n";
+        $msg = $this->messageText($tracker, $date, $message);
         $postData = array('type' => 'note',
                           'title' => $header_message,
                           'body' => $msg );

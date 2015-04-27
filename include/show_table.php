@@ -35,11 +35,11 @@ if ( ! empty($torrents_list))
         if ($tracker_type == 'series') {
             if ($hd == 1 && $tracker == 'lostfilm.tv' || $hd == 1 && $tracker == 'lostfilm-mirror')
                 $quality_icon = '<div class="q720"></div><div class="q1080"></div>';
-            elseif ($hd == 1 && $tracker == 'baibako.tv' || $hd == 1 && $tracker == 'newstudio.tv' || $hd == 1 && $tracker == 'novafilm.tv')
+            elseif ($hd == 1 && $tracker == 'baibako.tv' || $hd == 1 && $tracker == 'hamsterstudio.org' || $hd == 1 && $tracker == 'newstudio.tv' || $hd == 1 && $tracker == 'novafilm.tv')
                 $quality_icon = '<div class="q720"></div>';
-                elseif ($hd == 2 && $tracker == 'lostfilm.tv' || $hd == 2 && $tracker == 'lostfilm-mirror')
+            elseif ($hd == 2 && $tracker == 'lostfilm.tv' || $hd == 2 && $tracker == 'lostfilm-mirror')
                 $quality_icon = '<div class="q720mp4"></div>';
-            elseif ($hd == 2 && $tracker == 'baibako.tv' || $hd == 2 && $tracker == 'newstudio.tv' || $hd == 2 && $tracker == 'novafilm.tv')
+            elseif ($hd == 2 && $tracker == 'baibako.tv' || $hd == 2 && $tracker == 'hamsterstudio.org' || $hd == 2 && $tracker == 'newstudio.tv' || $hd == 2 && $tracker == 'novafilm.tv')
                 $quality_icon = '<div class="q1080"></div>';
             else
                 $quality_icon = '<div class="qsd"></div>';

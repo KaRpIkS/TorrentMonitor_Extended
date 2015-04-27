@@ -17,11 +17,19 @@
     </p>
     <div id="proxySettings" {if="! $proxy"}class="result"{/if}>
         <p>
-           <label class="label-name"></label>
-           <label><input type="checkbox" name="autoProxy" {if="$autoProxy"}checked{/if}> Только для заблокированных ресурсов</label>
-	   	   <span class="subinput-text">Поиск ресурсов в реестре запрещенных сайтов Роскомнадзора и доступ к ним через указанный прокси-сервер. Рекомендуется antizapret.prostovpn.org:3128</span>
-		</p>
-        <p>
+            <label class="label-name"></label>
+            <label><input type="checkbox" name="autoProxy" {if="$autoProxy"}checked{/if}> Только для заблокированных ресурсов</label>
+            <span class="subinput-text">Поиск ресурсов в реестре запрещенных сайтов Роскомнадзора и доступ к ним через указанный прокси-сервер. Рекомендуется antizapret.prostovpn.org:3128</span>
+         </p>
+         <p>
+            <label class="label-name">Тип proxy</label>
+            <label>
+                <select id="proxyType" name="proxyType">
+                    <option value="HTTP" {if="$proxyType = 'HTTP'"}selected{/if}>HTTP</option>
+                    <option value="SOCKS5" {if="$proxyType = 'SOCKS5'"}selected{/if}>SOCKS5</option>
+                </select>
+            </label>
+            <br />
             <label class="label-name">IP, порт прокси-сервера</label>
             <input type="text" name="proxyAddress" value="{$proxyAddress}">
             <span class="subinput-text">Например: 127.0.0.1:9050</span>
@@ -93,6 +101,7 @@
             <th>Адрес</th>
             <th><img src="img/icon9-2.png" title="Отправлять уведомления о добавлении/обновлении раздач"/></th>
             <th><img src="img/icon6.png" title="Отправлять уведомления об ошибках"/></th>
+            <th><img src="img/icon9-2.png" title="Отправлять уведомления c новостями"/></th>
             <th/>
         </tr>
         {loop="notifiersList"}
@@ -105,6 +114,7 @@
             <td><input type="text" name="sendAddress" value="{$value.notifier->SendAddress()}" style="width: 300px;"> </td>
             <td><input type="checkbox" name="sendUpdate" {$value.needSendUpdate} > </td>
             <td><input type="checkbox" name="sendWarning" {$value.needSendWarning} > </td>
+            <td><input type="checkbox" name="sendNews" {$value.needSendNews} > </td>
             <td><a class="delete" onclick="removeNotifierSetting(this)"></a> </td>
         </tr>
         {/loop}
