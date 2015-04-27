@@ -415,7 +415,7 @@ class Sys
             if ( ! Database::checkNewsExist($page->news->id[$i]))
                 {
                     Database::insertNews($page->news->id[$i], $page->news->text[$i]);
-                    Notifier::send('news', date('r'), 0, $page->news->text[$i], 0);
+                    Notifier::send('news', date('r'), '', strip_tags($page->news->text[$i]), '');
                 }
             }
         }
