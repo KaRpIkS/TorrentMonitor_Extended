@@ -25,8 +25,8 @@
             <label class="label-name">Тип proxy</label>
             <label>
                 <select id="proxyType" name="proxyType">
-                    <option value="HTTP" {if="$proxyType = 'HTTP'"}selected{/if}>HTTP</option>
-                    <option value="SOCKS5" {if="$proxyType = 'SOCKS5'"}selected{/if}>SOCKS5</option>
+                    <option value="HTTP" {if="$proxyType == 'HTTP'"}selected{/if}>HTTP</option>
+                    <option value="SOCKS5" {if="$proxyType == 'SOCKS5'"}selected{/if}>SOCKS5</option>
                 </select>
             </label>
             <br />
@@ -137,7 +137,7 @@
     </p>
     <button class="form-button">Сменить</button>
 </form>
-  
+
   <div class="clear-both"></div>
-  
+
   <script src="js/user-func.js"></script>
