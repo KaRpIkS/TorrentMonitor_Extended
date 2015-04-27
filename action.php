@@ -395,7 +395,7 @@ if (isset($_POST['action']))
     }
 
     //Возвращаем содержимое страницы index в зависимости от состояния авторизации
-    if ($_POST['action'] == 'getIndexPage')
+    if ($_POST['action'] == 'getIndexContent')
     {
         $result = array();
 
@@ -427,7 +427,7 @@ if (isset($_POST['action']))
             $result['type'] = 'auth';
         }
         
-        echo json_encode($result);
+        echo $result['content'];
     }
 }
 
