@@ -176,8 +176,10 @@ class hamsterstudioorg
     }
 
     //основная функция
-    public static function main($id, $tracker, $name, $hd, $ep, $timestamp, $hash)
+    public static function main($torrentInfo)
     {
+        extract($torrentInfo);
+        
         //проверяем небыло ли до этого уже ошибок
         if (empty(hamsterstudioorg::$exucution) || (hamsterstudioorg::$exucution))
         {

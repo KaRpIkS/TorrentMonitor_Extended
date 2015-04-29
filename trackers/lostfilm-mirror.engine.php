@@ -84,8 +84,10 @@ class lostfilmmirror
     }
     
     //основная функция
-    public static function main($id, $tracker, $name, $hd, $ep, $timestamp, $hash)
+    public static function main($torrentInfo)
     {
+        extract($torrentInfo);
+        
         //проверяем получена ли уже RSS лента
         if ( ! lostfilmmirror::$log_page)
         {

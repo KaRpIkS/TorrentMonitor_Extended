@@ -119,8 +119,10 @@ class tvmekcinfo
         }
     }
     
-    public static function main($id, $tracker, $name, $torrent_id, $timestamp, $hash, $auto_update)
+    public static function main($torrentInfo)
     {
+        extract($torrentInfo);
+        
         $cookie = Database::getCookie($tracker);
         if (tvmekcinfo::checkCookie($cookie))
         {
