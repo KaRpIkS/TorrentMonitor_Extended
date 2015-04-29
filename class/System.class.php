@@ -65,7 +65,7 @@ class Sys
     //версия системы
     public static function version()
     {
-        return '1.2.3';
+        return '1.2.3.1';
     }
 
     //проверка обновлений системы
@@ -138,12 +138,12 @@ class Sys
             if (is_array($settingProxy))
             {
                 $proxy = $settingProxy[0]['val'];
-                $proxyAddress = $settingProxy[0]['val'];
-                $proxyType = $settingProxy[0]['val'];
+                $proxyAddress = $settingProxy[1]['val'];
+                $proxyType = $settingProxy[2]['val'];
             }
             if ($proxy)
             {
-                curl_setopt($ch, CURLOPT_PROXY, $settingProxyAddress); 
+                curl_setopt($ch, CURLOPT_PROXY, $proxyAddress); 
                 $type = 'CURLPROXY_'.$proxyType;
                 curl_setopt($ch, CURLOPT_PROXYTYPE, $type);
             }
@@ -266,8 +266,8 @@ class Sys
                 $name = substr($array[1], 0, -20);
             elseif ($tracker == 'rutracker.org')
                 $name = substr($array[1], 0, -34);
-            elseif ($tracker == 'new-rutor.org')
-                $name = substr($array[1], 17);
+            elseif ($tracker == 'rutor.org')
+                $name = substr($array[1], 13);
             elseif ($tracker == 'tracker.0day.kiev.ua')
                 $name = substr($array[1], 6, -67);
             elseif ($tracker == 'torrents.net.ua')
@@ -298,14 +298,17 @@ class Sys
         if ($status['status'])
         {
             Database::deleteFromTemp($id);
-            return ' И добавлен в torrent-клиент.';
+            $return['msg'] = ' И добавлен в torrent-клиент.';
+            $return['hash'] = $status['hash'];
         }
         else
         {
             Database::saveToTemp($id, $path, $hash, $tracker, $message, $date_str);
             Errors::setWarnings($torrentClient, $status['msg']);
-            return ' Но не добавлен в torrent-клиент и сохраненён.';
+            $return['msg'] = ' Но не добавлен в torrent-клиент и сохраненён.';
+            $return['hash'] = $status['hash'];
         }
+        return $return;
     }
     
     //сохраняем torrent файл
@@ -320,15 +323,16 @@ class Sys
         file_put_contents($path, $torrent);
         $messageAdd = ' И сохранён.';
         
-        $script = Database::getScript($id);
-        if ( ! empty($script['script']))
-            print(`{$script['script']} '{$tracker}' '{$name}' '{$id}' '{$hash}' '{$message}' '{$date_str}'`);
-
         $useTorrent = Database::getSetting('useTorrent');
         if ($useTorrent)
-            $messageAdd = Sys::addToClient($id, $path, $hash, $tracker, $message, $date_str);
+            $status = Sys::addToClient($id, $path, $hash, $tracker, $message, $date_str);
         //отправляем уведомлении о новом торренте
-        Notification::sendNotification('notification', $date_str, $tracker, $message.$messageAdd, $name);
+        $message = $message.$status['msg'];
+        Notification::sendNotification('notification', $date_str, $tracker, $message, $name);
+
+        $script = Database::getScript($id);
+        if ( ! empty($script['script']))
+            print(`{$script['script']} '{$tracker}' '{$name}' '{$status['hash']}' '{$message}' '{$date_str}'`);
     }
     
     //преобразуем месяц из числового в текстовый

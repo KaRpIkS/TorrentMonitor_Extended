@@ -31,7 +31,7 @@ if ($tracker == 'rutracker.org' || $tracker == 'nnm-club.me' || $tracker == 'tfi
 elseif ($tracker == 'casstudio.tv' || $tracker == 'kinozal.tv'  || $tracker == 'animelayer.ru' || $tracker == 'tracker.0day.kiev.ua' || $tracker == 'tv.mekc.info')
     $tracker = 'http://'.$tracker.'/details.php?id=';
 elseif ($tracker == 'rutor.org')
-    $tracker = 'http://alt.rutor.org/torrent/';
+    $tracker = 'http://rutor.org/torrent/';
 elseif ($tracker == 'anidub.com')
     $tracker = 'http://tr.anidub.com/';
 ?>

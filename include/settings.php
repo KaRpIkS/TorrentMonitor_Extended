@@ -3,8 +3,8 @@ $dir = dirname(__FILE__)."/../";
 include_once $dir."config.php";
 include_once $dir."class/System.class.php";
 include_once $dir."class/Database.class.php";
-#if ( ! Sys::checkAuth())
-#    die(header('Location: ../'));
+if ( ! Sys::checkAuth())
+    die(header('Location: ../'));
 
 function generateList($type, $sendUpdateService)
 {
@@ -26,7 +26,7 @@ function generateList($type, $sendUpdateService)
         echo '<div id="'.$services[$i]['service'].'_'.$type.'_label" class="result">';
         echo '<input type="hidden" name="id" value="'.$services[$i]['id'].'">';
         echo '<p>
-            <label class="label-name">Адресс</label>
+            <label class="label-name">Адрес</label>
             <input type="text" name="send'.$type.'Address'.$services[$i]['id'].'" value="'.$services[$i]['address'].'">
         </p>
         </div>';
@@ -131,8 +131,7 @@ foreach ($settings as $row)
         </p>
         <p>
             <label class="label-name"></label>
-            <label><input type="checkbox" name="deleteDistribution" <?php if ($deleteDistribution) echo "checked" ?>> Удалять раздачи</label>
-            <span class="subinput-text">Только для lostfilm.tv, novafilm.tv, baibako.tv и newstudio.tv</span>
+            <label><input type="checkbox" name="deleteDistribution" <?php if ($deleteDistribution) echo "checked" ?>> Удалять раздачи из torrent-клиента</label>
         </p>
         <p>
             <label class="label-name"></label>

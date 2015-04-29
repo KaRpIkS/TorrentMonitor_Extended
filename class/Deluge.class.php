@@ -49,6 +49,7 @@ class Deluge
             //сбрасываем варнинг
             Database::clearWarnings('Deluge');
             $return['status'] = TRUE;
+            $return['hash'] = $hashNew;
         }
         return $return;
     }

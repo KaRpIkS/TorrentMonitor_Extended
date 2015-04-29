@@ -93,6 +93,7 @@ class Transmission
                 //сбрасываем варнинг
                 Database::clearWarnings('Transmission');
                 $return['status'] = TRUE;
+                $return['hash'] = $hashNew;
             }
             else
             {
