@@ -100,7 +100,7 @@ VALUES
 	(32,'httpTimeout','15'),
 	(33,'sendUpdateService',''),
 	(35,'sendWarningService',''),
-	(37,'proxyType','');
+	(37,'proxyType',''),
 	(501, 'lastUpdateBlockedIPs', ''),
 	(502, 'autoProxy', '0');
 
