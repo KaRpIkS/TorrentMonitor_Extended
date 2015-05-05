@@ -71,6 +71,19 @@ class Sys
         return '1.2.4.1';
     }
 
+    //версия системы
+    public static function dbVersion()
+    {
+        $dbVer = Database::getSetting('dbVer');
+
+        //При первом запуске необходимо заполнить версию базы данных
+        if ( empty($dbVer) ) {
+            $dbVer = Sys::version();        
+            Database::updateSettings('dbVer', $dbVer);
+        }
+        return $dbVer;
+    }
+
     //проверка обновлений системы
     public static function checkUpdate()
     {
@@ -79,13 +92,8 @@ class Sys
                 'timeout' => 1
                 )
             ));
-        //При первом запуске необходимо заполнить версию базы данных
-        $dbVer = Database::getSetting('dbVer');
-        if ( empty($dbVer) ) {
-            $dbVer = Sys::version();        
-            Database::updateSettings('dbVer', $dbVer);
-        }
-
+        $dbVer = Sys::dbVersion();        
+        $version = Sys::version();
                 
         $xmlstr = @file_get_contents('http://vlmaksime.github.io/tme/version.xml', false, $opts);
         $xml = @simplexml_load_string($xmlstr);
@@ -98,11 +106,11 @@ class Sys
         if (false !== $xml)
         {
             $latestVersion = (string) $xml->current_version;
-            if ( version_compare($dbVer, $latestVersion, '<') ) {
+            if ( version_compare($version, $latestVersion, '<') ) {
                 $result['update'] = TRUE;
                 $result['msg'] = "Доступна новая версия TorrentMonitor. Пожалуйста, <a href='#' onclick=\"show('update');\">обновитесь</a>";
             }
-            else if ( version_compare($dbVer, Sys::version(), '<') ) {
+            else if ( version_compare($dbVer, $version, '<') ) {
                 $result['update'] = TRUE;
                 $result['msg'] = "Для корректной работы необходимо установить <a href='#' onclick=\"show('update');\">обновления</a> базы данных";
             }

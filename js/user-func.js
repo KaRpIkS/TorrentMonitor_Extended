@@ -415,19 +415,8 @@ $( document ).ready(function()
         $.post("action.php",{action: 'system_update'},
             function(data) {
                 $('#system_update').empty().html(data);
+                checkUpdate();
             }
-        );
-        
-        $.post("action.php",{action: 'getUpdateInfo'},
-            function(data) {
-                if (data.update)
-                    $('#update_message').show();
-                else
-                    $('#update_message').hide();
-                
-                $('#update_message').empty().html(data.msg);
-                $('#versionInfo').empty().html(data.ver);
-            }, "json"
         );
     });
 
@@ -742,6 +731,21 @@ function showIndexContent()
         function(data) {
             $('#index_content').empty().append(data);
         }, "html"
+    );
+}
+
+//Проверка информации об обновлениях
+function checkUpdate() {
+    $.post("action.php",{action: 'getUpdateInfo'},
+        function(data) {
+            if (data.update)
+                $('#update_message').show();
+            else
+                $('#update_message').hide();
+            
+            $('#update_message').empty().html(data.msg);
+            $('#versionInfo').empty().html(data.ver);
+        }, "json"
     );
 }
 
