@@ -135,7 +135,7 @@ DROP TABLE IF EXISTS `temp`;
 
 CREATE TABLE `temp` (
   `id` int(11) unsigned NOT NULL,
-  `path` varchar(100) DEFAULT NULL,
+  `path` varchar(200) DEFAULT NULL,
   `hash` varchar(40) DEFAULT NULL,
   `tracker` varchar(30) DEFAULT NULL,
   `message` varchar(60) DEFAULT NULL,
@@ -150,7 +150,7 @@ CREATE TABLE `torrent` (
   `tracker` varchar(30) NOT NULL,
   `name` varchar(250) NOT NULL DEFAULT '',
   `hd` tinyint(1) unsigned NOT NULL DEFAULT '0',
-  `path` varchar(100) DEFAULT NULL,
+  `path` varchar(200) DEFAULT NULL,
   `torrent_id` varchar(150) DEFAULT NULL,
   `ep` varchar(10) DEFAULT '',
   `timestamp` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',

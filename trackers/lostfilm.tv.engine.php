@@ -29,15 +29,15 @@ class lostfilm
 	{
 		if ( ! empty($array))
 		{
-			lostfilm::$sess_cookie = $array[1][1]."=".$array[2][1]." ".$array[1][2]."=".$array[2][2];
+			lostfilm::$sess_cookie = $array[1][0]."=".$array[2][0]." ".$array[1][1]."=".$array[2][1];
 			$page = Sys::getUrlContent(
 	        	array(
-	        		'type'           => 'POST',
+	        		'type'           => 'GET',
 	        		'header'         => 0,
 	        		'returntransfer' => 1,
 	        		'url'            => 'https://www.lostfilm.tv/my.php',
 	        		'cookie'         => lostfilm::$sess_cookie,
-	        		'sendHeader'     => array('Content-length' => '', 'Expect' => '', 'Content-Type' => ''),
+	        		'sendHeader'     => array('Host' => 'www.lostfilm.tv'),
 	        		'convert'        => array('windows-1251', 'utf-8//IGNORE'),
 	        	)
 	        );
@@ -83,7 +83,7 @@ class lostfilm
         		'returntransfer' => 1,
         		'url'            => 'https://www.lostfilm.tv/',
         		'cookie'         => $sess_cookie,
-        		'sendHeader'     => array('Content-length' => '', 'Expect' => '', 'Content-Type' => ''),
+        		'sendHeader'     => array('Host' => 'www.lostfilm.tv'),
         		'convert'        => array('windows-1251', 'utf-8//IGNORE'),
         	)
         );
@@ -370,7 +370,7 @@ class lostfilm
 						        		'returntransfer' => 1,
 						        		'url'            => $serial['link'],
 						        		'cookie'         => lostfilm::$sess_cookie,
-						        		'sendHeader'     => array('Content-length' => '','Expect' => '', 'Content-Type' => ''),
+						        		'sendHeader'     => array('Host' => 'www.lostfilm.tv', 'Content-length' => strlen($cookie)),
 						        	)
                                 );
                                 

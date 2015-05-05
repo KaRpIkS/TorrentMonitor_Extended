@@ -109,7 +109,7 @@ CREATE SEQUENCE auto_id_temp;
 
 CREATE TABLE "temp" (
   "id" INTEGER PRIMARY KEY NOT NULL DEFAULT nextval('auto_id_temp'),
-  "path" varchar(100) DEFAULT NULL,
+  "path" varchar(200) DEFAULT NULL,
   "hash" varchar(40) DEFAULT NULL,
   "tracker" varchar(30) DEFAULT NULL,
   "message" varchar(60) DEFAULT NULL,
@@ -125,7 +125,7 @@ CREATE TABLE "torrent" (
   "tracker" varchar(30) NOT NULL,
   "name" varchar(250) NOT NULL DEFAULT '',
   "hd" INTEGER NOT NULL DEFAULT '0',
-  "path" varchar(100) NOT NULL,
+  "path" varchar(200) NOT NULL,
   "torrent_id" varchar(150) NOT NULL DEFAULT '',
   "ep" varchar(10) DEFAULT '',
   "timestamp" timestamp,

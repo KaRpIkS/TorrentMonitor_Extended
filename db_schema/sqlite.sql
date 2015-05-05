@@ -94,7 +94,7 @@ INSERT INTO "settings" VALUES (37, 'proxyType', '15');
 
 CREATE TABLE `temp` (
   `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-  `path` varchar(100) NOT NULL DEFAULT '',
+  `path` varchar(200) NOT NULL DEFAULT '',
   `hash` varchar(40) NOT NULL DEFAULT '',
   `tracker` varchar(30) NOT NULL DEFAULT '',
   `message` varchar(60) NOT NULL DEFAULT '',
@@ -106,7 +106,7 @@ CREATE TABLE `torrent` (
   `tracker` varchar(30) NOT NULL,
   `name` varchar(250) NOT NULL DEFAULT '',
   `hd` INTEGER NOT NULL DEFAULT '0',
-  `path` varchar(100) NOT NULL DEFAULT '',
+  `path` varchar(200) NOT NULL DEFAULT '',
   `torrent_id` varchar(150) NOT NULL DEFAULT '',
   `ep` varchar(10) DEFAULT '',
   `timestamp` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
