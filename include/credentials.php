@@ -24,7 +24,6 @@ raintpl::configure("tpl_dir" , Sys::getTemplateDir() );
 $tpl = new RainTPL;
 
 $tpl->assign( "credential", $credential );
-$tpl->assign( "trackers", $trackers );
 
 $tpl->draw( 'credentials' );
 ?>
