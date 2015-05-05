@@ -417,6 +417,18 @@ $( document ).ready(function()
                 $('#system_update').empty().html(data);
             }
         );
+        
+        $.post("action.php",{action: 'getUpdateInfo'},
+            function(data) {
+                if (data.update)
+                    $('#update_message').show();
+                else
+                    $('#update_message').hide();
+                
+                $('#update_message').empty().html(data.msg);
+                $('#versionInfo').empty().html(data.ver);
+            }, "json"
+        );
     });
 
     //Сохраняем настройки уведомлений
@@ -472,6 +484,9 @@ function show(name)
         function(data) {
             $('#content').empty().append(data);
     });
+    
+    if (name == 'check' || name == 'execution' || name == 'update')
+        $('#content').empty().append('<div id="loader"></div>');
 
 	if (name == 'show_table')
 	{

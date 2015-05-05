@@ -1,10 +1,8 @@
-  <div class="update" style="display:{if="$update"}block{else}none{/if}">
-    Доступна новая версия TorrentMonitor. Пожалуйста, <a href="#" onclick="show('update');">обновитесь</a>
-  </div>
+  <div id="update_message" class="update" style="display:{$updateState}" >{$updateMsg}</div>
   
   <div id="wrapper" type="main">
     <header id="header">
-      <h1 class="h-title">TorrentMonitor v.{$version}</h1>
+      <h1 class="h-title">TorrentMonitor v.<span id="versionInfo">{$version}</span></h1>
       <menu class="h-menu">
         <li id="show_table" class="active"><a href="#" onclick="show('show_table')" class="h-menu-item1">Торренты</a></li>
         <li id="show_watching"><a href="#" onclick="show('show_watching')" class="h-menu-item2">Пользователи</a></li>
@@ -20,10 +18,10 @@
     </header>
     
     <div class="coverAll" style="display: none">
-      <div class="blok"></div>
+      <div class="blok"/>
     </div>
     
-    <div id="content"></div>
+    <div id="content"/>
     
   </div>
 

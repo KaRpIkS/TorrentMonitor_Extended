@@ -81,7 +81,7 @@ class rutororg
                                 
                                 if ($auto_update)
                                 {
-                                    $name = Sys::getHeader('http://alt.rutor.org/torrent/'.$torrent_id.'/');
+                                    $name = Sys::getHeader('http://rutor.org/torrent/'.$torrent_id.'/');
                                     //обновляем заголовок торрента в базе
                                     Database::setNewName($id, $name);
                                 }
@@ -146,11 +146,6 @@ class rutororg
     // функция генерирует url ссылку на раздачу
     public static function generateURL($tracker, $torrent_id) {
         return 'http://rutor.org/torrent/'.$torrent_id;
-    }
-    
-    // функция возвращает перечень имен, которые могут использоваться в ссылках на текущий треккер
-    public static function getAssociations() {
-        return array('new-rutor.org');
     }
     
     // функция возвращает идентификатор раздачи

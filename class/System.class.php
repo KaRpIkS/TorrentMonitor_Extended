@@ -68,7 +68,7 @@ class Sys
     //версия системы
     public static function version()
     {
-        return '1.2.3';
+        return '1.2.4.1';
     }
 
     //проверка обновлений системы
@@ -79,18 +79,38 @@ class Sys
                 'timeout' => 1
                 )
             ));
+        //При первом запуске необходимо заполнить версию базы данных
+        $dbVer = Database::getSetting('dbVer');
+        if ( empty($dbVer) ) {
+            $dbVer = Sys::version();        
+            Database::updateSettings('dbVer', $dbVer);
+        }
 
+                
         $xmlstr = @file_get_contents('http://vlmaksime.github.io/tme/version.xml', false, $opts);
         $xml = @simplexml_load_string($xmlstr);
  
+        $result = array('update' => FALSE,
+                  'msg' => '',
+                  'ver' => $dbVer,
+                  );
+        
         if (false !== $xml)
         {
             $latestVersion = (string) $xml->current_version;
-            if ( version_compare(Sys::version(), $latestVersion, '<') )
-                return TRUE;
+            if ( version_compare($dbVer, $latestVersion, '<') ) {
+                $result['update'] = TRUE;
+                $result['msg'] = "Доступна новая версия TorrentMonitor. Пожалуйста, <a href='#' onclick=\"show('update');\">обновитесь</a>";
+            }
+            else if ( version_compare($dbVer, Sys::version(), '<') ) {
+                $result['update'] = TRUE;
+                $result['msg'] = "Для корректной работы необходимо установить <a href='#' onclick=\"show('update');\">обновления</a> базы данных";
+            }
             else
-                return FALSE;
+                $result['update'] = FALSE;
         }
+        
+        return $result;
     }
 
     //обёртка для CURL, для более удобного использования
@@ -163,14 +183,12 @@ class Sys
                 if ($useProxy)
                 {
                     curl_setopt($ch, CURLOPT_PROXY, $proxyAddress); 
-                    $type = 'CURLPROXY_'.$proxyType;
-                    curl_setopt($ch, CURLOPT_PROXYTYPE, $type);
+                    if ($proxyType == 'SOCKS5')
+                        curl_setopt($ch, CURLOPT_PROXYTYPE, CURLPROXY_SOCKS5);
+                    elseif ($proxyType == 'HTTP')
+                        curl_setopt($ch, CURLOPT_PROXYTYPE, CURLPROXY_HTTP);
                 }
             }
-
-            $curl = curl_version();
-            if (substr($curl["ssl_version"], 0, 3) == 'NSS' && strstr($param['url'], 'lostfilm.tv'))
-                curl_setopt($ch, CURLOPT_SSL_CIPHER_LIST, 'ecdhe_ecdsa_aes_128_sha');
 
             if (Database::getSetting('debug'))
                 curl_setopt($ch, CURLOPT_VERBOSE, TRUE);
@@ -286,8 +304,8 @@ class Sys
                 $name = substr($array[1], 0, -20);
             elseif ($tracker == 'rutracker.org')
                 $name = substr($array[1], 0, -34);
-            elseif ($tracker == 'new-rutor.org')
-                $name = substr($array[1], 17);
+            elseif ($tracker == 'rutor.org')
+                $name = substr($array[1], 13);
             elseif ($tracker == 'tracker.0day.kiev.ua')
                 $name = substr($array[1], 6, -67);
             elseif ($tracker == 'torrents.net.ua')
@@ -318,14 +336,17 @@ class Sys
         if ($status['status'])
         {
             Database::deleteFromTemp($id);
-            return ' И добавлен в torrent-клиент.';
+            $return['msg'] = ' И добавлен в torrent-клиент.';
+            $return['hash'] = $status['hash'];
         }
         else
         {
             Database::saveToTemp($id, $path, $hash, $tracker, $message, $date_str);
             Errors::setWarnings($torrentClient, $status['msg']);
-            return ' Но не добавлен в torrent-клиент и сохраненён.';
+            $return['msg'] = ' Но не добавлен в torrent-клиент и сохраненён.';
+            $return['hash'] = $status['hash'];
         }
+        return $return;
     }
 
     //сохраняем torrent файл
@@ -340,15 +361,16 @@ class Sys
         file_put_contents($path, $torrent);
         $messageAdd = ' И сохранён.';
 
-        $script = Database::getScript($id);
-        if ( ! empty($script['script']))
-            print(`{$script['script']} '{$tracker}' '{$name}' '{$id}' '{$hash}' '{$message}' '{$date_str}'`);
-
         $useTorrent = Database::getSetting('useTorrent');
         if ($useTorrent)
-            $messageAdd = Sys::addToClient($id, $path, $hash, $tracker, $message, $date_str);
+            $status = Sys::addToClient($id, $path, $hash, $tracker, $message, $date_str);
         //отправляем уведомлении о новом торренте
-        Notifier::send('notification', $date_str, $tracker, $message.$messageAdd, $name);
+        $message = $message.$status['msg'];
+        Notifier::send('notification', $date_str, $tracker, $message, $name);
+
+        $script = Database::getScript($id);
+        if ( ! empty($script['script']))
+            print(`{$script['script']} '{$tracker}' '{$name}' '{$status['hash']}' '{$message}' '{$date_str}'`);
     }
 
     //преобразуем месяц из числового в текстовый

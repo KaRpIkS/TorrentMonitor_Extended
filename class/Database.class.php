@@ -306,7 +306,7 @@ class Database
             
         if (Database::getDbType() == 'pgsql')
         {
-            $stmt = Database::getInstance()->dbh->prepare("SELECT id, tracker, name, hd, path, torrent_id, ep, timestamp, auto_update,
+            $stmt = Database::getInstance()->dbh->prepare("SELECT id, tracker, name, hd, path, torrent_id, ep, timestamp, auto_update, script,
                             to_char(timestamp, 'dd') AS day,
                             to_char(timestamp, 'mm') AS month,
                             to_char(timestamp, 'YYYY') AS year,
@@ -317,7 +317,7 @@ class Database
         }
         elseif (Database::getDbType() == 'mysql')
         {
-            $stmt = Database::getInstance()->dbh->prepare("SELECT `id`, `tracker`, `name`, `hd`, `path`, `torrent_id`, `ep`, `timestamp`, `auto_update`,
+            $stmt = Database::getInstance()->dbh->prepare("SELECT `id`, `tracker`, `name`, `hd`, `path`, `torrent_id`, `ep`, `timestamp`, `auto_update`, `script`,
                             DATE_FORMAT(`timestamp`, '%d') AS `day`, 
                             DATE_FORMAT(`timestamp`, '%m') AS `month`, 
                             DATE_FORMAT(`timestamp`, '%Y') AS `year`, 
@@ -328,7 +328,7 @@ class Database
         }
         elseif (Database::getDbType() == 'sqlite')
         {
-            $stmt = Database::getInstance()->dbh->prepare("SELECT `id`, `tracker`, `name`, `hd`, `path`, `torrent_id`, `ep`, `timestamp`, `auto_update`,
+            $stmt = Database::getInstance()->dbh->prepare("SELECT `id`, `tracker`, `name`, `hd`, `path`, `torrent_id`, `ep`, `timestamp`, `auto_update`, `script`,
                             strftime('%d', `timestamp`) AS `day`, 
                             strftime('%m', `timestamp`) AS `month`, 
                             strftime('%Y', `timestamp`) AS `year`, 
@@ -356,6 +356,7 @@ class Database
                 $resultArray[$i]['time'] = $row['time'];
                 $resultArray[$i]['hash'] = $row['hash'];
                 $resultArray[$i]['auto_update'] = $row['auto_update'];
+                $resultArray[$i]['script'] = $row['script'];
                 $i++;
             }
             if ( ! empty($resultArray))

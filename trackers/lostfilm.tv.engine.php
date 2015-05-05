@@ -29,15 +29,15 @@ class lostfilmtv
     {
         if ( ! empty($array))
         {
-            lostfilmtv::$sess_cookie = $array[1][1]."=".$array[2][1]." ".$array[1][2]."=".$array[2][2];
+            lostfilmtv::$sess_cookie = $array[1][0]."=".$array[2][0]." ".$array[1][1]."=".$array[2][1];
             $page = Sys::getUrlContent(
                 array(
-                    'type'           => 'POST',
+                    'type'           => 'GET',
                     'header'         => 0,
                     'returntransfer' => 1,
                     'url'            => 'https://www.lostfilm.tv/my.php',
                     'cookie'         => lostfilmtv::$sess_cookie,
-                    'sendHeader'     => array('Content-length' => '', 'Expect' => '', 'Content-Type' => ''),
+                    'sendHeader'     => array('Host' => 'www.lostfilm.tv'),
                     'convert'        => array('windows-1251', 'utf-8//IGNORE'),
                 )
             );
@@ -83,7 +83,7 @@ class lostfilmtv
                 'returntransfer' => 1,
                 'url'            => 'https://www.lostfilm.tv/',
                 'cookie'         => $sess_cookie,
-                'sendHeader'     => array('Content-length' => '', 'Expect' => '', 'Content-Type' => ''),
+                'sendHeader'     => array('Host' => 'www.lostfilm.tv'),
                 'convert'        => array('windows-1251', 'utf-8//IGNORE'),
             )
         );
@@ -193,7 +193,7 @@ class lostfilmtv
             $page = lostfilmtv::login($login, $password);
             preg_match_all('/name=\"(.*)\"/iU', $page, $array_names);
             preg_match_all('/value=\"(.*)\"/iU', $page, $array_values);
-            preg_match('/action=\"\/\/(.*)\"/iU', $page, $url_array);
+            preg_match('/action=\"(.*)\"/iU', $page, $url_array);
             
             if ( ! empty($array_names) &&  ! empty($array_values) && isset($url_array[1]))
             {
@@ -210,7 +210,7 @@ class lostfilmtv
                         'type'           => 'POST',
                         'header'         => 1,
                         'returntransfer' => 1,
-                        'url'            => 'https://'.$url,
+                        'url'            => $url,
                         'postfields'     => $post,
                         'convert'        => array('windows-1251', 'utf-8//IGNORE'),
                     )
@@ -372,7 +372,7 @@ class lostfilmtv
                                         'returntransfer' => 1,
                                         'url'            => $serial['link'],
                                         'cookie'         => lostfilmtv::$sess_cookie,
-                                        'sendHeader'     => array('Content-length' => '','Expect' => '', 'Content-Type' => ''),
+                                        'sendHeader'     => array('Host' => 'www.lostfilm.tv', 'Content-length' => strlen($cookie)),
                                     )
                                 );
                                 

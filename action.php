@@ -11,8 +11,10 @@ include_once $dir."class/rain.tpl.class.php";
 
 if (isset($_POST['action']))
 {
+    $action = $_POST['action'];
+
     //Проверяем пароль
-    if ($_POST['action'] == 'enter')
+    if ($action == 'enter')
     {
         $password = md5($_POST['password']);
         $count = Database::countCredentials($password);
@@ -35,7 +37,7 @@ if (isset($_POST['action']))
     }
     
     //Добавляем тему для мониторинга
-    if ($_POST['action'] == 'torrent_add')
+    elseif ($action == 'torrent_add')
     {
         if ($url = parse_url($_POST['url']))
         {
@@ -92,7 +94,7 @@ if (isset($_POST['action']))
     }
     
     //Добавляем сериал для мониторинга
-    if ($_POST['action'] == 'serial_add')
+    elseif ($action == 'serial_add')
     {
         $tracker = $_POST['tracker'];
         if (is_array(Database::getCredentials($tracker)))
@@ -134,7 +136,7 @@ if (isset($_POST['action']))
     }
     
     //Обновляем отслеживаемый item
-    if ($_POST['action'] == 'update')
+    elseif ($action == 'update')
     {
         $tracker = $_POST['tracker'];
         $reset   = Sys::strBoolToInt($_POST['reset']);
@@ -181,7 +183,7 @@ if (isset($_POST['action']))
     }
     
     //Добавляем пользователя для мониторинга
-    if ($_POST['action'] == 'user_add')
+    elseif ($action == 'user_add')
     {
         $tracker = $_POST['tracker'];
         if (is_array(Database::getCredentials($tracker)))
@@ -215,7 +217,7 @@ if (isset($_POST['action']))
     }
     
     //Удаляем пользователя из мониторинга и все его темы
-    if ($_POST['action'] == 'delete_user')
+    elseif ($action == 'delete_user')
     {
         Database::deletUser($_POST['user_id']);
         $return['error'] = FALSE;
@@ -224,7 +226,7 @@ if (isset($_POST['action']))
     }
     
     //Удаляем тему из буфера
-    if ($_POST['action'] == 'delete_from_buffer')
+    elseif ($action == 'delete_from_buffer')
     {
         Database::deleteFromBuffer($_POST['id']);
         $return['error'] = FALSE;
@@ -233,7 +235,7 @@ if (isset($_POST['action']))
     }
     
     //Очищаем весь список тем
-    if ($_POST['action'] == 'threme_clear')
+    elseif ($action == 'threme_clear')
     {
         $array = Database::selectAllFromBuffer();
         for($i=0; $i<count($array); $i++)
@@ -247,7 +249,7 @@ if (isset($_POST['action']))
     }
     
     //Перемещаем тему из буфера в мониторинг постоянный
-    if ($_POST['action'] == 'transfer_from_buffer')
+    elseif ($action == 'transfer_from_buffer')
     {
         Database::transferFromBuffer($_POST['id']);
         $return['error'] = FALSE;
@@ -256,7 +258,7 @@ if (isset($_POST['action']))
     }
     
     //Помечаем тему для скачивания
-    if ($_POST['action'] == 'threme_add')
+    elseif ($action == 'threme_add')
     {
         $update = Database::updateThremesToDownload($_POST['id']);
         if ($update)
@@ -272,7 +274,7 @@ if (isset($_POST['action']))
     }
     
     //Удаляем мониторинг
-    if ($_POST['action'] == 'del')
+    elseif ($action == 'del')
     {
         Database::deletItem($_POST['id']);
         $return['error'] = FALSE;
@@ -281,7 +283,7 @@ if (isset($_POST['action']))
     }
     
     //Обновляем личные данные
-    if ($_POST['action'] == 'update_credentials')
+    elseif ($action == 'update_credentials')
     {
         if ( ! isset($_POST['passkey']))
             $_POST['passkey'] = '';
@@ -292,7 +294,7 @@ if (isset($_POST['action']))
     }
     
     //Обновляем настройки
-    if ($_POST['action'] == 'update_settings')
+    elseif ($action == 'update_settings')
     {
         Database::updateSettings('serverAddress', Sys::checkPath($_POST['serverAddress']));
         Database::updateSettings('auth', Sys::strBoolToInt($_POST['auth']));
@@ -316,7 +318,7 @@ if (isset($_POST['action']))
         echo json_encode($return);
     }
     
-    if ($_POST['action'] == 'updateNotifierSettings')
+    elseif ($action == 'updateNotifierSettings')
     {
         $notifiersSettings = json_decode($_POST['settings'], true);
         foreach ($notifiersSettings as $key => $settings)
@@ -332,7 +334,7 @@ if (isset($_POST['action']))
     }
     
     //Меняем пароль
-    if ($_POST['action'] == 'change_pass')
+    elseif ($action == 'change_pass')
     {
         $pass = md5($_POST['pass']);
         $q = Database::updateCredentials($pass);
@@ -350,7 +352,7 @@ if (isset($_POST['action']))
     }
     
     //Добавляем тему на закачку
-    if ($_POST['action'] == 'download_thremes')
+    elseif ($action == 'download_thremes')
     {
         if ( ! empty($_POST['checkbox']))
         {
@@ -367,26 +369,26 @@ if (isset($_POST['action']))
     }
     
     //Помечаем новость как прочитанную
-    if ($_POST['action'] == 'markNews')
+    elseif ($action == 'markNews')
     {
         Database::markNews($_POST['id']);
         return TRUE;
     }
     
     //Выполняем обновление системы
-    if ($_POST['action'] == 'system_update')
+    elseif ($action == 'system_update')
     {
         Update::runUpdate();
         return TRUE;
     }
     
     // Получаем список доступных нотификаторов
-    if ($_POST['action'] == 'getNotifierList')
+    elseif ($action == 'getNotifierList')
     {
         echo json_encode(Sys::getNotifiers());
     }
 
-    if ($_POST['action'] == 'removeNotifierSettings')
+    elseif ($action == 'removeNotifierSettings')
     {
         $notifier = Notifier::Create($_POST['notifierClass'], $_POST['group']);
         if ($notifier != NULL)
@@ -395,7 +397,7 @@ if (isset($_POST['action']))
     }
 
     //Возвращаем содержимое страницы index в зависимости от состояния авторизации
-    if ($_POST['action'] == 'getIndexContent')
+    elseif ($action == 'getIndexContent')
     {
         $result = array();
 
@@ -412,9 +414,12 @@ if (isset($_POST['action']))
                 for ($i=0; $i<count($errors); $i++)
                     $count += $errors[$i]['count'];
             
+            $updateInfo = Sys::checkUpdate();
+            
             $tpl = new RainTPL;
-            $tpl->assign( "update"     , Sys::checkUpdate() );
-            $tpl->assign( "version"    , Sys::version() );
+            $tpl->assign( "updateState", $updateInfo['update'] ? 'block' : 'none' );
+            $tpl->assign( "updateMsg"  , $updateInfo['msg'] );
+            $tpl->assign( "version"    , $updateInfo['ver'] );
             $tpl->assign( "error_count", $count );
         
             $result['content'] = $tpl->draw( 'index_main', true );
@@ -428,6 +433,19 @@ if (isset($_POST['action']))
         }
         
         echo $result['content'];
+    }
+    
+    //Возвращаем информацию об обновлениях и актуальную версию
+    elseif ($action == 'getUpdateInfo') {
+        $result = Sys::checkUpdate();
+        echo json_encode($result);
+    }
+
+    // Неизвестная команда
+    else {
+        $return['error'] = TRUE;
+        $return['msg'] = 'Неизвестная команда "'.$_POST['action'].'"';
+        echo json_encode($return);
     }
 }
 

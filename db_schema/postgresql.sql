@@ -87,13 +87,14 @@ INSERT INTO settings VALUES (35, 'sendWarningService', '');
 INSERT INTO settings VALUES (37, 'proxyType', '15');
 INSERT INTO settings VALUES (501, 'lastUpdateBlockedIPs', '');
 INSERT INTO settings VALUES (502, 'autoProxy', '0');
+INSERT INTO settings VALUES (503, 'dbVer', '');
 
 
 CREATE SEQUENCE auto_id_temp;
 
 CREATE TABLE "temp" (
   "id" INTEGER PRIMARY KEY NOT NULL DEFAULT nextval('auto_id_temp'),
-  "path" varchar(100) DEFAULT NULL,
+  "path" varchar(255) DEFAULT NULL,
   "hash" varchar(40) DEFAULT NULL,
   "tracker" varchar(30) DEFAULT NULL,
   "message" varchar(60) DEFAULT NULL,
@@ -109,7 +110,7 @@ CREATE TABLE "torrent" (
   "tracker" varchar(30) NOT NULL,
   "name" varchar(250) NOT NULL DEFAULT '',
   "hd" INTEGER NOT NULL DEFAULT '0',
-  "path" varchar(100) NOT NULL,
+  "path" varchar(255) NOT NULL,
   "torrent_id" varchar(150) NOT NULL DEFAULT '',
   "ep" varchar(10) DEFAULT '',
   "timestamp" timestamp,
@@ -127,6 +128,7 @@ CREATE TABLE "warning" (
   "where" varchar(40) NOT NULL,
   "reason" varchar(200) NOT NULL
 );
+
 
 CREATE SEQUENCE auto_id_watch;
 
