@@ -62,28 +62,16 @@ CREATE TABLE "settings" (
   "val" varchar(100) NOT NULL
 );
 
-INSERT INTO settings VALUES (3, 'send', '1');
-INSERT INTO settings VALUES (4, 'sendWarning', '0');
 INSERT INTO settings VALUES (5, 'password', '1f10c9fd49952a7055531975c06c5bd8');
 INSERT INTO settings VALUES (6, 'auth', '1');
 INSERT INTO settings VALUES (7, 'proxy', '0');
 INSERT INTO settings VALUES (8, 'proxyAddress', 'antizapret.prostovpn.org:3128');
 INSERT INTO settings VALUES (9, 'useTorrent', '0');
-INSERT INTO settings VALUES (10, 'torrentClient', '');
-INSERT INTO settings VALUES (11, 'torrentAddress', '127.0.0.1:9091');
-INSERT INTO settings VALUES (12, 'torrentLogin', '');
-INSERT INTO settings VALUES (13, 'torrentPassword', '');
-INSERT INTO settings VALUES (14, 'pathToDownload', '');
-INSERT INTO settings VALUES (16, 'deleteOldFiles', '0');
 INSERT INTO settings VALUES (19, 'serverAddress', '');
-INSERT INTO settings VALUES (20, 'deleteDistribution', '0');
-INSERT INTO settings VALUES (24, 'sendUpdate', '0');
 INSERT INTO settings VALUES (29, 'debug', '0');
 INSERT INTO settings VALUES (30, 'rss', '1');
 INSERT INTO settings VALUES (31, 'debugFor', '');
 INSERT INTO settings VALUES (32, 'httpTimeout', '15');
-INSERT INTO settings VALUES (33, 'sendUpdateService', '');
-INSERT INTO settings VALUES (35, 'sendWarningService', '');
 INSERT INTO settings VALUES (37, 'proxyType', '15');
 INSERT INTO settings VALUES (501, 'lastUpdateBlockedIPs', '');
 INSERT INTO settings VALUES (502, 'autoProxy', '0');

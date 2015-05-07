@@ -4,9 +4,10 @@ include_once $dir.'config.php';
 include_once $dir.'class/System.class.php';
 include_once $dir.'class/Database.class.php';
 include_once $dir.'class/Notifier.class.php';
+include_once $dir.'class/TorrentClient.class.php';
 include_once $dir.'class/Errors.class.php';
 include_once $dir.'class/Trackers.class.php';
-include_once $dir."class/rain.tpl.class.php";
+include_once $dir."class/Lib/rain.tpl.class.php";
 
 if (isset($_POST['action']))
 {
@@ -17,7 +18,7 @@ if (isset($_POST['action']))
     {
         $password = md5($_POST['password']);
         $count = Database::countCredentials($password);
-        
+
         if ($count == 1)
         {
             session_start();
@@ -34,7 +35,7 @@ if (isset($_POST['action']))
         }
         echo json_encode($return);
     }
-    
+
     //Добавляем тему для мониторинга
     elseif ($action == 'torrent_add')
     {
@@ -42,7 +43,7 @@ if (isset($_POST['action']))
         {
             $tracker = Trackers::getTrackerName( preg_replace('/www\./', '', $url['host']) );
             $threme  = Trackers::getThreme($tracker, $_POST['url']);
-            
+
             if (is_array(Database::getCredentials($tracker)))
             {
                 if (Trackers::moduleExist($tracker))
@@ -55,7 +56,7 @@ if (isset($_POST['action']))
                                 $name = $_POST['name'];
                             else
                                 $name = Sys::getHeader($_POST['url']);
-                            
+
                             Database::setThreme($tracker, $name, $_POST['path'], $threme, Sys::strBoolToInt($_POST['update_header']));
                             $return['error'] = FALSE;
                             $return['msg'] = 'Тема добавлена для мониторинга.';
@@ -91,7 +92,7 @@ if (isset($_POST['action']))
         }
         echo json_encode($return);
     }
-    
+
     //Добавляем сериал для мониторинга
     elseif ($action == 'serial_add')
     {
@@ -102,7 +103,7 @@ if (isset($_POST['action']))
             {
                 if (Trackers::checkRule($tracker, $_POST['name']))
                 {
-                    if (Database::checkSerialExist($tracker, $_POST['name'], $_POST['hd'])) 
+                    if (Database::checkSerialExist($tracker, $_POST['name'], $_POST['hd']))
                     {
                         Database::setSerial($tracker, $_POST['name'], $_POST['path'], $_POST['hd']);
                         $return['error'] = FALSE;
@@ -133,21 +134,21 @@ if (isset($_POST['action']))
         }
         echo json_encode($return);
     }
-    
+
     //Обновляем отслеживаемый item
     elseif ($action == 'update')
     {
         $tracker = $_POST['tracker'];
         $reset   = Sys::strBoolToInt($_POST['reset']);
-        
+
         $trackerType = Trackers::getTrackerType($tracker);
-        
+
         if ($trackerType == 'series')
         {
-            if (Trackers::checkRule($tracker ,$_POST['name']))    
+            if (Trackers::checkRule($tracker ,$_POST['name']))
             {
                 Database::updateSerial($_POST['id'], $_POST['name'], $_POST['path'], $_POST['hd'], $reset, $_POST['script']);
-                
+
                 $return['error'] = FALSE;
                 $return['msg'] = 'Сериал обновлён.';
             }
@@ -162,13 +163,13 @@ if (isset($_POST['action']))
             $url = parse_url($_POST['url']);
             $tracker = Trackers::getTrackerName( preg_replace('/www\./', '', $url['host']) );
             $threme  = Trackers::getThreme($tracker, $_POST['url']);
-            
+
             $update = Sys::strBoolToInt($_POST['update']);
-            
+
             if (Trackers::checkRule($tracker, $threme))
             {
                 Database::updateThreme($_POST['id'], $_POST['name'], $_POST['path'], $threme, $update, $reset, $_POST['script']);
-                
+
                 $return['error'] = FALSE;
                 $return['msg'] = 'Тема обновлена.';
             }
@@ -180,7 +181,7 @@ if (isset($_POST['action']))
         }
         echo json_encode($return);
     }
-    
+
     //Добавляем пользователя для мониторинга
     elseif ($action == 'user_add')
     {
@@ -189,9 +190,9 @@ if (isset($_POST['action']))
         {
             if (Trackers::moduleExist($tracker))
             {
-                if (Database::checkUserExist($tracker, $_POST['name'])) 
+                if (Database::checkUserExist($tracker, $_POST['name']))
                 {
-                    Database::setUser($tracker, $_POST['name']);                   
+                    Database::setUser($tracker, $_POST['name']);
                     $return['error'] = FALSE;
                     $return['msg'] = 'Пользователь добавлен для мониторинга.';
                 }
@@ -214,7 +215,7 @@ if (isset($_POST['action']))
         }
         echo json_encode($return);
     }
-    
+
     //Удаляем пользователя из мониторинга и все его темы
     elseif ($action == 'delete_user')
     {
@@ -223,7 +224,7 @@ if (isset($_POST['action']))
         $return['msg'] = 'Слежение за пользователем удалено.';
         echo json_encode($return);
     }
-    
+
     //Удаляем тему из буфера
     elseif ($action == 'delete_from_buffer')
     {
@@ -232,7 +233,7 @@ if (isset($_POST['action']))
         $return['msg'] = 'Тема удалена из буфера.';
         echo json_encode($return);
     }
-    
+
     //Очищаем весь список тем
     elseif ($action == 'threme_clear')
     {
@@ -246,7 +247,7 @@ if (isset($_POST['action']))
         $return['msg'] = 'Буфер очищен.';
         echo json_encode($return);
     }
-    
+
     //Перемещаем тему из буфера в мониторинг постоянный
     elseif ($action == 'transfer_from_buffer')
     {
@@ -255,7 +256,7 @@ if (isset($_POST['action']))
         $return['msg'] = 'Тема перенесена из буфера.';
         echo json_encode($return);
     }
-    
+
     //Помечаем тему для скачивания
     elseif ($action == 'threme_add')
     {
@@ -271,7 +272,7 @@ if (isset($_POST['action']))
         }
         echo json_encode($return);
     }
-    
+
     //Удаляем мониторинг
     elseif ($action == 'del')
     {
@@ -280,7 +281,7 @@ if (isset($_POST['action']))
         $return['msg'] = 'Удалено.';
         echo json_encode($return);
     }
-    
+
     //Обновляем личные данные
     elseif ($action == 'update_credentials')
     {
@@ -291,7 +292,7 @@ if (isset($_POST['action']))
         $return['msg'] = 'Данные для трекера обновлены.';
         echo json_encode($return);
     }
-    
+
     //Обновляем настройки
     elseif ($action == 'update_settings')
     {
@@ -301,22 +302,42 @@ if (isset($_POST['action']))
         Database::updateSettings('autoProxy', Sys::strBoolToInt($_POST['autoProxy']));
         Database::updateSettings('proxyType', $_POST['proxyType']);
         Database::updateSettings('proxyAddress', $_POST['proxyAddress']);
-        Database::updateSettings('useTorrent', Sys::strBoolToInt($_POST['torrent']));
-        Database::updateSettings('torrentClient', $_POST['torrentClient']);
-        Database::updateSettings('torrentAddress', $_POST['torrentAddress']);
-        Database::updateSettings('torrentLogin', $_POST['torrentLogin']);
-        Database::updateSettings('torrentPassword', $_POST['torrentPassword']);
-        Database::updateSettings('pathToDownload', Sys::checkPath($_POST['pathToDownload']));
-        Database::updateSettings('deleteDistribution', Sys::strBoolToInt($_POST['deleteDistribution']));
-        Database::updateSettings('deleteOldFiles', Sys::strBoolToInt($_POST['deleteOldFiles']));
         Database::updateSettings('rss', Sys::strBoolToInt($_POST['rss']));
         Database::updateSettings('debug', Sys::strBoolToInt($_POST['debug']));
-        
+
         $return['error'] = FALSE;
         $return['msg'] = 'Настройки монитора обновлены.';
         echo json_encode($return);
     }
-    
+    elseif ($action == 'updateTorrentClientSettings')
+    {
+        $useTorrent = Sys::strBoolToInt($_POST['torrent']) ;
+        $clientClass = $_POST['torrentClient'];
+        $clientAddress = $_POST['torrentAddress'];
+        $clientUser = $_POST['torrentLogin'];
+        $clientPwd = $_POST['torrentPassword'];
+        $pathToDownload = Sys::checkPath($_POST['pathToDownload']);
+        $deleteDistribution = Sys::strBoolToInt($_POST['deleteDistribution']);
+        $deleteOldFiles = Sys::strBoolToInt($_POST['deleteOldFiles']);
+
+        Database::updateSettings('useTorrent', $useTorrent);
+
+        $client = TorrentClient::Create($clientClass);
+        if ($client != NULL)
+        {
+            if ($useTorrent == FALSE)
+                Database::removePluginSettings($client);
+            else
+            {
+               $client->SetParams($clientAddress, $clientUser, $clientPwd, $pathToDownload, $deleteDistribution, $deleteOldFiles);
+            }
+            $client = NULL;
+        }
+
+        $return['error'] = FALSE;
+        $return['msg'] = 'Настройки торрент-клиента обновлены.';
+        echo json_encode($return);
+    }
     elseif ($action == 'updateNotifierSettings')
     {
         $notifiersSettings = json_decode($_POST['settings'], true);
@@ -331,7 +352,7 @@ if (isset($_POST['action']))
         $return['msg'] = 'Настройки уведомлений обновлены.';
         echo json_encode($return);
     }
-    
+
     //Меняем пароль
     elseif ($action == 'change_pass')
     {
@@ -349,7 +370,7 @@ if (isset($_POST['action']))
         }
         echo json_encode($return);
     }
-    
+
     //Добавляем тему на закачку
     elseif ($action == 'download_thremes')
     {
@@ -366,20 +387,20 @@ if (isset($_POST['action']))
         }
         Database::updateDownloadThremeNew();
     }
-    
+
     //Помечаем новость как прочитанную
     elseif ($action == 'markNews')
     {
         Database::markNews($_POST['id']);
         return TRUE;
     }
-    
+
     //Выполняем обновление системы
     elseif ($action == 'system_update')
     {
         Sys::launchUpdate();
     }
-    
+
     // Получаем список доступных нотификаторов
     elseif ($action == 'getNotifierList')
     {
@@ -402,24 +423,24 @@ if (isset($_POST['action']))
         // заполнение шаблона
         raintpl::configure("root_dir", $dir );
         raintpl::configure("tpl_dir" , Sys::getTemplateDir() );
-         
+
         if (Sys::checkAuth())
         {
             $errors = Database::getWarningsCount();
-            
+
             $count = 0;
             if ( ! empty($errors))
                 for ($i=0; $i<count($errors); $i++)
                     $count += $errors[$i]['count'];
-            
+
             $updateInfo = Sys::checkUpdate();
-            
+
             $tpl = new RainTPL;
             $tpl->assign( "updateState", $updateInfo['update'] ? 'block' : 'none' );
             $tpl->assign( "updateMsg"  , $updateInfo['msg'] );
             $tpl->assign( "version"    , $updateInfo['ver'] );
             $tpl->assign( "error_count", $count );
-        
+
             $result['content'] = $tpl->draw( 'index_main', true );
             $result['type'] = 'main';
         }
@@ -429,10 +450,10 @@ if (isset($_POST['action']))
             $result['content'] = $tpl->draw( 'index_auth', true );
             $result['type'] = 'auth';
         }
-        
+
         echo $result['content'];
     }
-    
+
     //Возвращаем информацию об обновлениях и актуальную версию
     elseif ($action == 'getUpdateInfo') {
         $result = Sys::checkUpdate();

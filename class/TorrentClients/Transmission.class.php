@@ -1,52 +1,42 @@
 <?php
-$dir = str_replace('class', '', dirname(__FILE__));
-include_once $dir.'class/TransmissionRPC.class.php';
+include_once dirname(__FILE__).'/../TorrentClient.class.php';
+include_once dirname(__FILE__).'/../Database.class.php';
+include_once dirname(__FILE__).'/../Lib/TransmissionRPC.class.php';
 
-class Transmission
+class Transmission extends TorrentClient
 {
-    #добавляем новую закачку в torrent-клиент, обновляем hash в базе
-    public static function addNew($id, $file, $hash, $tracker)
+    public function Description()
     {
-        #получаем настройки из базы
-        $settings = Database::getAllSetting();
-        foreach ($settings as $row)
-        {
-            extract($row);
-        }
+        return "http://www.transmissionbt.com/";
+    }
 
+    protected function localDelete($hash, $withData)
+    {
+        if ( $withData == TRUE)
+            $delOpt = 'true';
+        else
+            $delOpt = 'false';
+
+    	$rpc = new TransmissionRPC('http://'.$this->ClientAddress().'/transmission/rpc', $this->ClientUser(), $this->ClientPwd());
+        $rpc->remove($hash, $delOpt);
+        $rpc = null;
+    }
+
+    protected function localAdd($params_array)
+    {
+        $id = $params_array['id'];
+        $file = $params_array['file'];
         try
         {
-            $rpc = new TransmissionRPC('http://'.$torrentAddress.'/transmission/rpc', $torrentLogin, $torrentPassword);
+    	    $rpc = new TransmissionRPC('http://'.$this->ClientAddress().'/transmission/rpc', $this->ClientUser(), $this->ClientPwd());
             #$rpc->debug=true;
             $result = $rpc->sstats();
-    
-            $individualPath = Database::getTorrentDownloadPath($id);
-            if ( ! empty($individualPath))
-                $pathToDownload = $individualPath;
-    
-            if ( ! empty($hash))
-            {
-                $delOpt = 'false';
-                if ($tracker == 'lostfilm.tv' || $tracker == 'novafilm.tv' || $tracker == 'baibako.tv' || $tracker == 'newstudio.tv')
-                {
-                    if ($deleteOldFiles)
-                        $delOpt = 'true';
-                    #удяляем существующую закачку из torrent-клиента
-                    if ($deleteDistribution)
-                        $result = $rpc->remove($hash, $delOpt);                    
-                }
-                else
-                {
-                    #удяляем существующую закачку из torrent-клиента
-                    $result = $rpc->remove($hash, $delOpt);
-                }
-            }
 
-            #добавляем торрент в torrent-клиент
+            $pathToDownload = $this->GetDownloadPath($id);
             $result = $rpc->add($file, $pathToDownload);
             $command = $result->result;
             $idt = @$result->arguments->torrent_added->id;
-        
+
             if (preg_match('/Couldn\'t connect to server/', $command))
             {
                 $return['status'] = FALSE;
@@ -87,11 +77,6 @@ class Transmission
                 #получаем хэш раздачи
                 $result = $rpc->get($idt, array('hashString'));
                 $hashNew = $result->arguments->torrents[0]->hashString;
-                #обновляем hash в базе
-                Database::updateHash($id, $hashNew);
-            
-                //сбрасываем варнинг
-                Database::clearWarnings('Transmission');
                 $return['status'] = TRUE;
                 $return['hash'] = $hashNew;
             }
@@ -124,15 +109,11 @@ class Transmission
         return $return;
     }
 
-    public static function checkSettings()
+    protected function localCheckSettings()
     {
-        $settings = Database::getAllSetting();
-        foreach ($settings as $row)
-            extract($row);
-
-    	try
+     	try
 	    {
-    	    $rpc = new TransmissionRPC('http://'.$torrentAddress.'/transmission/rpc', $torrentLogin, $torrentPassword);
+    	    $rpc = new TransmissionRPC('http://'.$this->ClientAddress().'/transmission/rpc', $this->ClientUser(), $this->ClientPwd());
     	    $result = $rpc->sstats()->result;
         }
         catch (Exception $e)
@@ -145,5 +126,6 @@ class Transmission
         else
             return array('text' => 'OK', 'error' => false);
     }
+
 }
 ?>

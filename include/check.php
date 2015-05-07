@@ -1,4 +1,4 @@
-<?php 
+<?php
 $dir = str_replace('include', '', dirname(__FILE__));
 
 include_once $dir."class/System.class.php";
@@ -8,9 +8,8 @@ if ( ! Sys::checkAuth())
 
 include_once $dir."class/Notifier.class.php";
 include_once $dir."class/Database.class.php";
-include_once $dir."class/Deluge.class.php";
-include_once $dir."class/Transmission.class.php";
-include_once $dir."class/rain.tpl.class.php";
+include_once $dir."class/TorrentClient.class.php";
+include_once $dir."class/Lib/rain.tpl.class.php";
 
 $settings = Database::getAllSetting();
 foreach ($settings as $row)
@@ -21,15 +20,15 @@ $contents = array();
 if (Sys::checkInternet())
 {
     $contents[] = array('text' => 'Подключение к интернету установлено.', 'error' => false);
-    
+
     if (Sys::checkConfigExist())
     {
         $contents[] = array('text' => 'Конфигурационный файл существует и заполнен.', 'error' => false);
-        
+
         if (Sys::checkCurl())
         {
             $contents[] = array('text' => 'Расширение cURL установлено.', 'error' => false);
-            
+
             $torrentPath = $dir.'torrents/';
             if (Sys::checkWriteToPath($torrentPath))
             {
@@ -50,7 +49,7 @@ if (Sys::checkInternet())
                 $contents[] = array('text' => 'Запись в системную директорию "'.$dir.'" запрещена.',
                                     'error' => true);
             }
-            
+
             $contents[] = array('text' => 'Отправка тестовых уведомлений об обновлениях', 'error' => false);
             $result = Notifier::send('notification', date('Y-m-d H:i:s'), '', 'Тест уведомлений об обновлениях', '');
             $contents[] = array('text' => $result, 'error' => false);
@@ -63,15 +62,10 @@ if (Sys::checkInternet())
             $result = Notifier::send('news', date('Y-m-d H:i:s'), '', 'Тест уведомлений с новостями', '');
             $contents[] = array('text' => $result, 'error' => false);
 
-            if ($torrentClient == 'Deluge')
+            if ($useTorrent == TRUE)
             {
-                $contents[] = array('text' => 'Проверка настроек Deluge', 'error' => false);
-                $contents[] = Deluge::checkSettings();
-            }
-            elseif ($torrentClient == 'Transmission')
-            {
-                $contents[] = array('text' => 'Проверка настроек Transmission', 'error' => false);
-                $contents[] = Transmission::checkSettings();
+                $contents[] = array('text' => 'Проверка настроек торрент-клиента', 'error' => false);
+                $contents[] = TorrentClient::CheckSettings();
             }
 
 
@@ -100,7 +94,7 @@ if (Sys::checkInternet())
                                             'error' => true);
                     }
                 }
-                
+
                 if (Database::checkTrackersCredentialsExist($tracker))
                 {
                     $contents[] = array('text' => 'Учётные данные для работы с трекером "'.$tracker.'" найдены.', 'error' => false);
@@ -143,7 +137,7 @@ if (Sys::checkInternet())
     {
         $contents[] = array('text' => 'Для корректной работы необходимо внести изменения в конфигурационный файл.',
                                 'error' => true);
-    }    
+    }
 }
 else
 {

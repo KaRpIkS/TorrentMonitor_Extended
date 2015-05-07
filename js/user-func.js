@@ -326,14 +326,6 @@ $( document ).ready(function()
             autoProxy = $form.find('input[name="autoProxy"]').prop('checked');
             proxyType = $form.find('select[name="proxyType"]').val();
             proxyAddress = $form.find('input[name="proxyAddress"]').val();
-            torrent = $form.find('input[name="torrent"]').prop('checked');
-            torrentClient = $form.find('select[name="torrentClient"]').val();
-            torrentAddress = $form.find('input[name="torrentAddress"]').val();
-            torrentLogin = $form.find('input[name="torrentLogin"]').val();
-            torrentPassword = $form.find('input[name="torrentPassword"]').val();
-            pathToDownload = $form.find('input[name="pathToDownload"]').val();
-            deleteDistribution = $form.find('input[name="deleteDistribution"]').prop('checked');
-            deleteOldFiles = $form.find('input[name="deleteOldFiles"]').prop('checked');
             rss = $form.find('input[name="rss"]').prop('checked');
             debug = $form.find('input[name="debug"]').prop('checked');
         
@@ -343,9 +335,6 @@ $( document ).ready(function()
         if (proxy == 'checked' && proxyAddress == '')
             formError += "Вы не указали адрес proxy-сервера.\n";
         
-        if (torrent == 'checked' && torrentClient == ''  && torrentAddress == '' && pathToDownload == '')
-            formError += "Вы не указали настройки торрент-клиента.";
-
         if (formError != "")
         {
             ohSnap(formError, 'red');
@@ -354,10 +343,8 @@ $( document ).ready(function()
 
         ohSnap('Обрабатывается запрос...', 'yellow');
         $.post("action.php",{action: 'update_settings', serverAddress: serverAddress, 
-            auth: auth, proxy: proxy, autoProxy: autoProxy, proxyType: proxyType, proxyAddress: proxyAddress, torrent: torrent,
-            torrentClient: torrentClient, torrentAddress: torrentAddress, torrentLogin: torrentLogin,
-            torrentPassword: torrentPassword, pathToDownload: pathToDownload,
-            deleteDistribution: deleteDistribution, deleteOldFiles: deleteOldFiles, rss: rss, debug: debug},
+            auth: auth, proxy: proxy, autoProxy: autoProxy, proxyType: proxyType, proxyAddress: proxyAddress,
+            rss: rss, debug: debug},
             function(data) {
                 if (data.error)
                 {
@@ -418,6 +405,49 @@ $( document ).ready(function()
                 checkUpdate();
             }
         );
+    });
+
+    //Сохраняем настройки торрент-клиента
+    $("#torrent_client_settings").submit(function()
+    {
+        formError = "";
+        var $form = $(this),
+            //s = $form.find('input[type=submit]'),
+            torrent = $form.find('input[name="torrent"]').prop('checked');
+            torrentClient = $form.find('select[name="torrentClient"]').val();
+            torrentAddress = $form.find('input[name="torrentAddress"]').val();
+            torrentLogin = $form.find('input[name="torrentLogin"]').val();
+            torrentPassword = $form.find('input[name="torrentPassword"]').val();
+            pathToDownload = $form.find('input[name="pathToDownload"]').val();
+            deleteDistribution = $form.find('input[name="deleteDistribution"]').prop('checked');
+            deleteOldFiles = $form.find('input[name="deleteOldFiles"]').prop('checked');
+        
+        if (torrent == 'checked' && torrentClient == ''  && torrentAddress == '' && pathToDownload == '')
+            formError += "Вы не указали настройки торрент-клиента.";
+
+        if (formError != "")
+        {
+            ohSnap(formError, 'red');
+            return false;
+        }
+
+        ohSnap('Обрабатывается запрос...', 'yellow');
+        $.post("action.php",{action: 'updateTorrentClientSettings', torrent: torrent,
+            torrentClient: torrentClient, torrentAddress: torrentAddress, torrentLogin: torrentLogin,
+            torrentPassword: torrentPassword, pathToDownload: pathToDownload,
+            deleteDistribution: deleteDistribution, deleteOldFiles: deleteOldFiles},
+            function(data) {
+                if (data.error)
+                {
+                    ohSnap(data.msg, 'red');
+                }
+                else
+                {
+                    ohSnap(data.msg, 'green');
+                }
+            }, "json"
+        );
+        return false;
     });
 
     //Сохраняем настройки уведомлений

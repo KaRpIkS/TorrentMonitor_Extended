@@ -8,7 +8,7 @@ if ( ! Sys::checkAuth())
 
 include_once $dir.'class/Database.class.php';
 include_once $dir.'class/Trackers.class.php';
-include_once $dir."class/rain.tpl.class.php";
+include_once $dir."class/Lib/rain.tpl.class.php";
 
 $date_today = date('d-m-Y');
 
@@ -31,7 +31,7 @@ if ( ! empty($torrents_list))
         extract($row);
         $tracker_type = Trackers::getTrackerType($tracker);
         $quality_icon = '';
-        
+
         if ($tracker_type == 'series') {
             if ($hd == 1 && $tracker == 'lostfilm.tv' || $hd == 1 && $tracker == 'lostfilm-mirror')
                 $quality_icon = '<div class="q720"></div><div class="q1080"></div>';
@@ -44,13 +44,13 @@ if ( ! empty($torrents_list))
             else
                 $quality_icon = '<div class="qsd"></div>';
         }
-    
+
         if ( !($timestamp == '0000-00-00 00:00:00' || $timestamp == NULL)) {
             $date_update = $day.' '.Sys::dateNumToString($month).' '.$year.' '.$time;
             $date = $day.'-'.$month.'-'.$year;
             if (stripos($date, $date_today) !== FALSE)
                 $date_update = '<u>'.$date_update.'</u>';
-                
+
             if ($timestamp != '0000-00-00 00:00:00')
             {
                 $season = substr($ep, 1, 2);
@@ -62,7 +62,7 @@ if ( ! empty($torrents_list))
             $season = '';
             $episode = '';
         }
-    
+
         $contents[] = array('tracker' => $tracker,
                             'name' => $name,
                             'id' => $id,

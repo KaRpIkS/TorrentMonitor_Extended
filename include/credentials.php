@@ -8,13 +8,13 @@ if ( ! Sys::checkAuth())
 
 include_once $dir."class/Database.class.php";
 include_once $dir."class/Trackers.class.php";
-include_once $dir."class/rain.tpl.class.php";
+include_once $dir."class/Lib/rain.tpl.class.php";
 
 $credential = Database::getAllCredentials();
 foreach ($credential as $key => $value) {
     if ( !Trackers::useAuthentication($value['tracker']) ) {
         unset($credential[$key]);
-    } 
+    }
 }
 
 // заполнение шаблона

@@ -1,6 +1,7 @@
 <?php
 
 include_once dirname(__FILE__).'/Notifier.class.php';
+include_once dirname(__FILE__).'/TorrentClient.class.php';
 
 class Sys
 {
@@ -78,7 +79,7 @@ class Sys
 
         //При первом запуске необходимо заполнить версию базы данных
         if ( empty($dbVer) ) {
-            $dbVer = Sys::version();        
+            $dbVer = Sys::version();
             Database::updateSettings('dbVer', $dbVer);
         }
         return $dbVer;
@@ -106,27 +107,27 @@ class Sys
     {
         $releaseInfo = Sys::getReleaseInfo();
 
-        $dbVer = Sys::dbVersion();        
+        $dbVer = Sys::dbVersion();
         $version = Sys::version();
-                
+
         if ( ! empty($releaseInfo) )
             $latestVersion = $releaseInfo->tag_name;
         else
             $latestVersion = $version;
- 
+
         $result = array('update' => FALSE,
                   'msg' => '',
                   'ver' => $dbVer,
                   );
-        
-            if ( version_compare($version, $latestVersion, '<') ) {
-                $result['update'] = TRUE;
-                $result['msg'] = "Доступна новая версия TorrentMonitor. Пожалуйста, <a href='#' onclick=\"show('update');\">обновитесь</a>";
-            }
-            else if ( version_compare($dbVer, $version, '<') ) {
-                $result['update'] = TRUE;
-                $result['msg'] = "Для корректной работы необходимо установить <a href='#' onclick=\"show('update');\">обновления</a> базы данных";
-            }
+
+	    if ( version_compare($version, $latestVersion, '<') ) {
+	        $result['update'] = TRUE;
+	        $result['msg'] = "Доступна новая версия TorrentMonitor. Пожалуйста, <a href='#' onclick=\"show('update');\">обновитесь</a>";
+	    }
+	    else if ( version_compare($dbVer, $version, '<') ) {
+	        $result['update'] = TRUE;
+	        $result['msg'] = "Для корректной работы необходимо установить <a href='#' onclick=\"show('update');\">обновления</a> базы данных";
+	    }
 
         return $result;
         }
@@ -225,7 +226,7 @@ class Sys
                     break;
             }
         }
-        
+
         if ( count($changelog) == 0 && version_compare($dbVer, $version, '<') ) {
             $changelog[] = array('ver'	=> $version,
                                  'desc'	=> 'Обновление базы данных');
@@ -306,7 +307,7 @@ class Sys
                 }
                 if ($useProxy)
                 {
-                    curl_setopt($ch, CURLOPT_PROXY, $proxyAddress); 
+                    curl_setopt($ch, CURLOPT_PROXY, $proxyAddress);
                     if ($proxyType == 'SOCKS5')
                         curl_setopt($ch, CURLOPT_PROXYTYPE, CURLPROXY_SOCKS5);
                     elseif ($proxyType == 'HTTP')
@@ -338,20 +339,19 @@ class Sys
                 'url'            => $tracker,
             )
         );
-        
+
         if (preg_match('/HTTP\/1\.1 200 OK/', $page))
             return true;
         else
             return false;
     }
-    
+
     //Получаем заголовок страницы
     public static function getHeader($url)
     {
         $Purl = parse_url($url);
         $tracker = $Purl['host'];
         $tracker = preg_replace('/www\./', '', $tracker);
-        
         if ($tracker == 'rustorka.com')
         {
             $dir = str_replace('class', '', dirname(__FILE__));
@@ -405,7 +405,7 @@ class Sys
                     'returntransfer' => 1,
                     'url'            => $url,
                 )
-            );            
+            );
         }
 
         if ($tracker != 'zerkalo-rutor.org' && $tracker != 'casstudio.tv' && $tracker != 'torrents.net.ua' && $tracker != 'rustorka.com' && $tracker != 'tr.anidub.com')
@@ -448,14 +448,13 @@ class Sys
     //добавляем в torrent-клиент
     public static function addToClient($id, $path, $hash, $tracker, $message, $date_str)
     {
-        $torrentClient = Database::getSetting('torrentClient');
         $dir = dirname(__FILE__).'/';
-        include_once $dir.$torrentClient.'.class.php';
         $server = Database::getSetting('serverAddress');
         $url = $server.$path;
         $dir = str_replace('class/', '', $dir);
         $url = str_replace($dir, '', $url);
-        $status = call_user_func($torrentClient.'::addNew', $id, $url, $hash, $tracker);
+        $params = array('id' => $id, 'file' => $url, 'hash' => $hash, 'tracker' => $tracker);
+        $status = TorrentClient::Add($params);
         if ($status['status'])
         {
             Database::deleteFromTemp($id);
@@ -465,7 +464,7 @@ class Sys
         else
         {
             Database::saveToTemp($id, $path, $hash, $tracker, $message, $date_str);
-            Errors::setWarnings($torrentClient, $status['msg']);
+            Errors::setWarnings(TorrentClient::$type, $status['msg']);
             $return['msg'] = ' Но не добавлен в torrent-клиент и сохраненён.';
             $return['hash'] = $status['hash'];
         }
@@ -565,7 +564,7 @@ class Sys
             }
         }
     }
-    
+
     //ф-ция преобразования true/false в int
     public static function strBoolToInt($value)
     {
@@ -587,7 +586,7 @@ class Sys
         {
             if (isset($_COOKIE['TM']))
                 $_SESSION['TM'] = $_COOKIE['TM'];
-            
+
             if (empty($_SESSION['TM']))
                 return FALSE;
 
@@ -599,7 +598,7 @@ class Sys
                 else
                     return TRUE;
             }
-            
+
             if ( ! empty($_COOKIE['hash_pass']))
             {
                 $hash_pass = Database::getSetting('password');
@@ -635,7 +634,7 @@ class Sys
     public static function getNotifiers()
     {
         $result = array();
-        foreach (glob(str_replace("class", "", dirname(__FILE__))."notifiers/*.Notifier.class.php") as $file)
+        foreach (glob(str_replace("class", "", dirname(__FILE__))."class/Notifiers/*.Notifier.class.php") as $file)
         {
             $notifierClass = str_replace(".Notifier.class.php", "", basename($file));
             $notifier = Notifier::Create($notifierClass, "-1");
@@ -645,18 +644,31 @@ class Sys
         return $result;
     }
 
+    public static function getTorrentClients()
+    {
+        $result = array();
+        foreach (glob(str_replace("class", "", dirname(__FILE__))."class/TorrentClients/*.class.php") as $file)
+        {
+            $clientClass = str_replace(".class.php", "", basename($file));
+            $client = TorrentClient::Create($clientClass);
+            $result[] = array("Name" => $client->Name(), "VerboseName" => $client->VerboseName());
+            $client = null;
+        }
+        return $result;
+    }
+
     public static function checkAndUpdateBlockedIPs()
     {
     	$curl = curl_init('http://antizapret.prostovpn.org/proxy.pac');
-    
+
     	curl_setopt($curl, CURLOPT_NOBODY, true);
     	curl_setopt($curl, CURLOPT_HEADER, true);
     	curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
     	curl_setopt($curl, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 6.3; rv:36.0) Gecko/20100101 Firefox/36.0');
-    
+
     	$headers = curl_exec($curl);
     	curl_close($curl);
-    
+
     	if($headers)
     	{
     		if(preg_match( "/^HTTP\/1\.[01] (\d\d\d)/", $headers, $matches))
@@ -667,17 +679,17 @@ class Sys
     				if(preg_match("/(?<=Last-Modified:\s)([A-Z,a-z]{3},\s\d{2}\s[A-Z,a-z]{3}\s\d{4}\s\d{2}:\d{2}:\d{2}\s[A-Z]{3})/", $headers, $matches))
     				{
     					$last_date = date("Y-m-d H:i:s",strtotime($matches[1]));
-    
+
     					if (Database::getSetting('lastUpdateBlockedIPs') !== $last_date)
     					{
     						$curl = curl_init('http://antizapret.prostovpn.org/proxy.pac');
     						curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
     						curl_setopt($curl, CURLOPT_BINARYTRANSFER, true);
     						curl_setopt($curl, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 6.3; rv:36.0) Gecko/20100101 Firefox/36.0');
-    							
+
     						$data = curl_exec($curl);
     						curl_close($curl);
-    							
+
     						if ($data)
     						{
     							if(preg_match_all("/(?<=\")(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?=\")/", $data, $ips))

@@ -6,7 +6,7 @@ include_once $dir."class/System.class.php";
 if ( ! Sys::checkAuth())
     die(header('Location: ../'));
 
-include_once $dir."class/rain.tpl.class.php";
+include_once $dir."class/Lib/rain.tpl.class.php";
 
 // заполнение раздело помощи
 // возможно имеет смысл перенести справку в xml файл

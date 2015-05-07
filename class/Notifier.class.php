@@ -63,7 +63,7 @@ abstract class Notifier extends Plugin
 
     public static function Create($notifierName, $group="")
     {
-        foreach (glob(dirname(__FILE__)."/../notifiers/*.Notifier.class.php") as $file)
+        foreach (glob(dirname(__FILE__)."/Notifiers/*.Notifier.class.php") as $file)
             include_once $file;
 
         $notifierClass = $notifierName.Notifier::$type;
@@ -134,6 +134,7 @@ abstract class Notifier extends Plugin
         return $result;
     }
 
+/*
     public static function findWarning()
     {
         $trackersArray = Database::getTrackersList();
@@ -147,8 +148,9 @@ abstract class Notifier extends Plugin
             }
         }
     }
+*/
 
-    public function messageText($tracker, $date, $message)
+    protected function messageText($tracker, $date, $message)
     {
     	if (is_string($tracker) && !empty($tracker) )
             $msg = 'Дата: '.$date."\r\n".'Трекер: '.$tracker."\r\n".'Сообщение: '.$message."\r\n";
