@@ -372,7 +372,7 @@ class lostfilmtv
                                         'returntransfer' => 1,
                                         'url'            => $serial['link'],
                                         'cookie'         => lostfilmtv::$sess_cookie,
-                                        'sendHeader'     => array('Host' => 'www.lostfilm.tv', 'Content-length' => strlen($cookie)),
+                                        'sendHeader'     => array('Host' => 'www.lostfilm.tv', 'Content-length' => strlen(lostfilmtv::$sess_cookie)),
                                     )
                                 );
                                 
