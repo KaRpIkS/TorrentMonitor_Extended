@@ -192,7 +192,7 @@ class Update {
             }
         }
         
-        if ( count($сhangelog) == 0 && version_compare($dbVer, $version, '<') ) {
+        if ( count($changelog) == 0 && version_compare($dbVer, $version, '<') ) {
             $changelog[] = array('ver' => $version,
                                  'desc' => 'Обновление базы данных');
         }
