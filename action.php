@@ -39,6 +39,8 @@ if (isset($_POST['action']))
 			$tracker = preg_replace('/www\./', '', $tracker);
 			if ($tracker == 'tr.anidub.com')
 				$tracker = 'anidub.com';
+            if ($tracker == 'zerkalo-rutor.org')
+				$tracker = 'rutor.org';
 				
 			if ($tracker == 'anidub.com')
 			    $threme = $url['path'];
@@ -205,6 +207,8 @@ if (isset($_POST['action']))
     			$tracker = preg_replace('/www\./', '', $tracker);
     			if ($tracker == 'tr.anidub.com')
     				$tracker = 'anidub.com';
+                if ($tracker == 'zerkalo-rutor.org')
+				    $tracker = 'rutor.org';
     				
     			if ($tracker == 'anidub.com')
     			    $threme = $url['path'];
