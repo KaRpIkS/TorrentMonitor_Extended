@@ -103,19 +103,17 @@ class Update {
         self::$db_version = Sys::dbVersion();
         self::$dbType     = Config::read('db.type');
         
-        //1.2.5.1
-        $updVersion = '1.2.5.1';
+        /* Шаблон обновления
+        $updVersion = '1.2.5.2';
         if ( self::NeedUpdate($updVersion) ) {
             echo '<br>Обновление до версии '.$updVersion.'<br>';
 
-            $deleteFolders = array('testDelete', 'testCreate');
-            $createFolders = array('testCreate');
-            $queryes = array();
-            $deleteFiles = array('class/System.class.php');
-            $copyFiles = array('class/System.class.php',
-                               'class/Update.class.php',
-                               'action.php',
-                         );
+            //Подготовка параметров для обновления модулей и БД
+            $deleteFolders = array(); //Перечень удаляемыйх каталогов
+            $createFolders = array(); //Перечень создаваемых каталогов
+            $deleteFiles   = array(); //Перечень удаляемыйх файлов
+            $copyFiles     = array(); //Перечень обновляемых файлов
+            $queryes       = array(); //Перечень выполняемых запросов
 
             $updateParams = array('deleteFolders'  => $deleteFolders,
                                   'createFolders'  => $createFolders,
@@ -124,14 +122,20 @@ class Update {
                                   'queryes'        => $queryes,
                             );
 
+            //Выполнение обновления модулей и БД
             if ( self::InstallUpdate($updateParams) ) {
                 echo 'Обновление завершено с ошибками';
                 exit;
             }
 
-            $dbVer = $updVersion;
-            Database::updateSettings('dbVer', $dbVer);
+            //Выполнение произвольного алгоритма
+
+            //Обновление данных о версии
+            self::$version = $updVersion;
+            self::$db_version = $updVersion;
+            Database::updateSettings('dbVer', self::$db_version);
         }
+        */
 
         echo 'Обновление завершено успешно';
 
