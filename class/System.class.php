@@ -68,7 +68,7 @@ class Sys
     //версия системы
     public static function version()
     {
-        return '1.2.5.1';
+        return '1.2.5.2';
     }
 
     //версия системы
@@ -84,28 +84,41 @@ class Sys
         return $dbVer;
     }
 
+    //получаем информацию о последнем релизе
+    private static function getReleaseInfo() {
+        $response = Sys::getUrlContent(
+            array(
+                'type'           => 'GET',
+                'returntransfer' => 1,
+                'url'            => 'https://api.github.com/repos/vlmaksime/TorrentMonitor_Extended/releases/latest',
+            )
+        );
+        $releaseInfo = json_decode($response);
+
+        if ( ! property_exists($releaseInfo, 'tag_name') )
+            $releaseInfo = null;
+
+        return $releaseInfo;
+    }
+
     //проверка обновлений системы
     public static function checkUpdate()
     {
-        $opts = stream_context_create(array(
-            'http' => array(
-                'timeout' => 1
-                )
-            ));
+        $releaseInfo = Sys::getReleaseInfo();
+
         $dbVer = Sys::dbVersion();        
         $version = Sys::version();
                 
-        $xmlstr = @file_get_contents('http://vlmaksime.github.io/tme/version.xml', false, $opts);
-        $xml = @simplexml_load_string($xmlstr);
+        if ( ! empty($releaseInfo) )
+            $latestVersion = $releaseInfo->tag_name;
+        else
+            $latestVersion = $version;
  
         $result = array('update' => FALSE,
                   'msg' => '',
                   'ver' => $dbVer,
                   );
         
-        if (false !== $xml)
-        {
-            $latestVersion = (string) $xml->current_version;
             if ( version_compare($version, $latestVersion, '<') ) {
                 $result['update'] = TRUE;
                 $result['msg'] = "Доступна новая версия TorrentMonitor. Пожалуйста, <a href='#' onclick=\"show('update');\">обновитесь</a>";
@@ -114,11 +127,111 @@ class Sys
                 $result['update'] = TRUE;
                 $result['msg'] = "Для корректной работы необходимо установить <a href='#' onclick=\"show('update');\">обновления</a> базы данных";
             }
-            else
-                $result['update'] = FALSE;
+
+        return $result;
         }
         
-        return $result;
+    //проверка обновлений системы
+    public static function launchUpdate()
+    {
+        $dbVer = Sys::dbVersion();
+        $version = Sys::version();
+        $root_dir = str_replace('class', '', dirname(__FILE__));
+
+        $releaseInfo = Sys::getReleaseInfo();
+
+        if ( ! empty($releaseInfo) )
+            $latestVersion = $releaseInfo->tag_name;
+        else
+            $latestVersion = $version;
+
+        //Выполняем обновление модулей
+        if ( version_compare($version, $latestVersion, '<') ) {
+            $file = Sys::getUrlContent(
+                array(
+                    'type'           => 'GET',
+                    'returntransfer' => 1,
+                    'location'       => 1,
+                    'url'            => $releaseInfo->zipball_url,
+                )
+            );
+
+            echo 'Скачивается пакет с обновлениями<br>';
+            if ( ! empty($file))
+            {
+                $zipFile = $root_dir.'latest.zip';
+                if (file_put_contents($zipFile, $file))
+                {
+                    echo 'Распаковывается пакет с обновлениями<br>';
+                    $zip = new ZipArchive;
+                    if ($zip->open($zipFile) === TRUE)
+                    {
+                        echo 'Выполняется установка обновлений<br>';
+                        $zip->extractTo($root_dir.'tmp');
+                        $zip->close();
+                        unlink($zipFile);
+
+                        $install_dir = $root_dir.'tmp/vlmaksime-TorrentMonitor_Extended-'.substr($releaseInfo->target_commitish, 0, 7).'/';
+
+                        include_once $install_dir.'class/Update.class.php';
+
+                        Update::$root_dir = $root_dir;
+                        Update::$install_dir = $install_dir;
+                        Update::$latest_version = $latestVersion;
+                        Update::Start();
+                        
+                    }
+                    else
+                        echo 'Не удалось распаковать пакет с обновлениями<br>';
+                }
+                else
+                    echo 'Не удалось сохранить пакет с обновлениями<br>';
+            }
+            else
+                echo 'Не удалось скачать пакет с обновлениями<br>';
+        }
+        else if ( version_compare($dbVer, $latestVersion, '<') ) {
+            include_once $root_dir.'class/Update.class.php';
+            Update::$latest_version = $latestVersion;
+            Update::Start();
+        }
+
+    }
+    public static function getUpdateInfo() {
+        $changelog = array();
+        
+        $version = Sys::version();
+        $dbVer   = Sys::dbVersion();
+
+        $response = Sys::getUrlContent(
+            array(
+                'type'           => 'GET',
+                'returntransfer' => 1,
+                'url'            => 'https://api.github.com/repos/vlmaksime/TorrentMonitor_Extended/releases',
+            )
+        );
+        $releases = json_decode($response);
+        
+        foreach($releases as $release) {
+            if ( property_exists($release, 'tag_name') && ! $release->prerelease ) {
+
+                if ( version_compare($version, $release->tag_name, '<') ) {
+                    $desc = $xml_page->update[$i]->description;
+                    $changelog[] = array('ver'	=> $release->tag_name,
+                                         'desc'	=> nl2br( str_replace(' ', '&nbsp;', $release->body) ),
+                                   );
+                }
+                else
+                    break;
+            }
+        }
+        
+        if ( count($changelog) == 0 && version_compare($dbVer, $version, '<') ) {
+            $changelog[] = array('ver'	=> $version,
+                                 'desc'	=> 'Обновление базы данных');
+        }
+        
+        return $changelog;
     }
 
     //обёртка для CURL, для более удобного использования
@@ -137,6 +250,9 @@ class Sys
 
             if (isset($param['header']))
                 curl_setopt($ch, CURLOPT_HEADER, 1);
+
+            if (isset($param['location']))
+                curl_setopt($ch, CURLOPT_FOLLOWLOCATION, $param['location']);
 
                curl_setopt($ch, CURLOPT_TIMEOUT, Database::getSetting('httpTimeout'));
 

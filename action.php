@@ -6,7 +6,6 @@ include_once $dir.'class/Database.class.php';
 include_once $dir.'class/Notifier.class.php';
 include_once $dir.'class/Errors.class.php';
 include_once $dir.'class/Trackers.class.php';
-include_once $dir.'class/Update.class.php';
 include_once $dir."class/rain.tpl.class.php";
 
 if (isset($_POST['action']))
@@ -378,8 +377,7 @@ if (isset($_POST['action']))
     //Выполняем обновление системы
     elseif ($action == 'system_update')
     {
-        Update::runUpdate();
-        return TRUE;
+        Sys::launchUpdate();
     }
     
     // Получаем список доступных нотификаторов

@@ -1,203 +1,143 @@
 <?php
-$dir = str_replace('class', '', dirname(__FILE__));
-
-include_once $dir."config.php";
-include_once $dir."class/System.class.php";
-include_once $dir."class/Database.class.php";
-
 class Update {
-    private static $xml_page;
+    public static $root_dir;
+    public static $install_dir;
+    public static $latest_version;
+
+    private static $version;
+    private static $db_version;
+    private static $dbType;
     
-    private static function delTree($dir)
-    {
-        $files = array_diff(scandir($dir), array('.','..'));
-        foreach ($files as $file)
-            (is_dir($dir.'/'.$file)) ? Update::delTree($dir.'/'.$file) : unlink($dir.'/'.$file);
-        return rmdir($dir); 
+    private static function deleteDirectory($dir) {
+        $result = false;
+        if ( $handle = opendir($dir) ) {
+            $result = true;
+            while ( (($file=readdir($handle))!==false) && ($result) ) {
+                if ($file!='.' && $file!='..') {
+                    $path = $dir.'/'.$file;
+                    if ( is_dir($path) ) {
+                        $result = self::deleteDirectory($path);
+                    } else {
+                        $result = unlink($path);
+                    }
+                }
+            }
+            closedir($handle);
+            if ($result){
+                $result = rmdir($dir);
+            }
+        }
+        return $result;
     }
     
-    public static function runUpdate()
+    private static function NeedUpdate($version)
     {
-        $xml_page = Update::xml_page();
-        $version = Sys::version();
-        $dbVer   = Sys::dbVersion();
-        $ROOTPATH = str_replace('class', '', dirname(__FILE__));
-        $dbType = Config::read('db.type');
-        
-        $count = count($xml_page->update) - 1;
-        
-        //Если версия базы данных не актуальна, то выполняем обновление
-        if ( version_compare($dbVer, $version, '<') ) {
-            for ($i=$count; $i>=0; $i--) {
-                $updVersion = (string) $xml_page->update[$i]->version;
-                if ( version_compare($dbVer, $updVersion, '<') ) {
-                    $queryes = $xml_page->update[$i]->$dbType;
-                    $queryes_common = $xml_page->update[$i]->queryes;
-                    echo '<b>Обновление базы данных c'.$dbVer.' по '.$updVersion.':</b></br>';
-                    if (isset($queryes->query) && ! empty($queryes->query)) {
-                        $x=0;
-                        foreach($queryes->query as $query) {
-                            Database::updateQuery($query);
-                            $x++;
-                        }
-                        echo 'Выполнено '.$x.' запросов на обновление.<br>';
-                    }
-                    
-                    if( isset($queryes_common->query) && ! empty($queryes_common->query) ) {
-                         $y=0;
-                        foreach($queryes_common->query as $query) {
-                            Database::updateQuery($query);
-                            $y++;
-                        }
-                        echo 'Выполнено '.$y.' запросов на обновление.<br>';
-                    }
-                    
-                    echo 'Обновление базы данных завершено</br></br>';
-                    Database::updateSettings('dbVer', $updVersion);
-                    $dbVer = $updVersion;
+        return ( version_compare(self::$version, $version, '<') || version_compare(self::$db_version, $version, '<') ); 
+    }
+
+    private static function InstallUpdate($updateParams) {
+        $deleteFolders  = isset($updateParams['deleteFolders']) ? $updateParams['deleteFolders'] : array();
+        $createFolders  = isset($updateParams['createFolders']) ? $updateParams['createFolders'] : array();
+        $deleteFiles    = isset($updateParams['deleteFiles']) ? $updateParams['deleteFiles'] : array();
+        $copyFiles      = isset($updateParams['copyFiles']) ? $updateParams['copyFiles'] : array();
+        $queryes        = isset($updateParams['queryes']) ? $updateParams['queryes'] : array();
+        $queryes_common = isset($updateParams['queryes_common']) ? $updateParams['queryes_common'] : array();
+
+        //Удаляем каталоги
+        foreach($deleteFolders as $folder) {
+            if ( file_exists(self::$root_dir.$folder) ) {
+                if ( self::deleteDirectory(self::$root_dir.$folder) )
+                    echo 'Каталог: <b>'.$folder.'</b> удален.<br>';
+                else {
+                    echo 'Не удалось удалить каталог: <b>'.$folder.'</b><br>';
+                    return TRUE;
                 }
             }
         }
+        
+        //Удаляем файлы
+        foreach($deleteFiles as $file) {
+            if ( unlink(self::$root_dir.$file) )
+                echo 'Файл: <b>'.$file.'</b> удален.<br>';
+            else {
+                echo 'Не удалось удалить файл: <b>'.$file.'</b><br>';
+                return TRUE;
+            }
+        }
 
-        for ($i=$count; $i>=0; $i--)
-        {
-            $updVersion = (string) $xml_page->update[$i]->version;
-            $description = $xml_page->update[$i]->description;
-            $files = $xml_page->update[$i]->files;
-            $queryes = $xml_page->update[$i]->$dbType;
-            $queryes_common = $xml_page->update[$i]->queryes;
-            $deleteFolders = $xml_page->update[$i]->deleteFolders;
-            $createFolders = $xml_page->update[$i]->createFolders;
-            
-            if ( version_compare($version, $updVersion, '<') )
-            {
-                echo '<b>Установка обновления '.$updVersion.':</b></br>';
-                $file = file_get_contents('http://vlmaksime.github.io/tme/stable.zip');
-                if ( ! empty($file))
-                {
-                    if (file_put_contents($ROOTPATH.'stable.zip', $file))
-                    {
-                        $zip = new ZipArchive;
-                        if ($zip->open($ROOTPATH.'stable.zip') === TRUE)
-                        {
-                            
-                            if (isset($deleteFolders->folder) && ! empty($deleteFolders->folder))
-                            {
-                                foreach($deleteFolders->folder as $folder)
-                                {
-                                    Update::delTree($ROOTPATH.$folder);
-                                }
-                            }
-                            if (isset($createFolders->create) && ! empty($createFolders->create))
-                            {
-                                foreach($createFolders->create as $folder)
-                                {
-                                    if ( ! mkdir($structure, 0777, true))
-                                    {
-                                        echo 'Не удалось создать директорию: '.$file.", обновление прервано.<br>";
-                                        break;
-                                    }
-                                }
-                            }
-                            
-                            $zip->extractTo($ROOTPATH.'tmp');
-                            $zip->close();
-                            unlink($ROOTPATH.'stable.zip');
-                            
-                            if (isset($files->file) && ! empty($files->file))
-                            {
-                                foreach($files->file as $file)
-                                {
-                                    if ( ! copy($ROOTPATH.'tmp/'.$file, $ROOTPATH.$file))
-                                    {
-                                        echo 'Не удалось скопировать файл: '.$file.", обновление прервано.<br>";
-                                        break;
-                                    }
-                                    else
-                                        echo 'Файл: '.$file.' обновлён.<br>';
-                                }
-                            }
-                            
-                            Update::delTree($ROOTPATH.'tmp');
-                            
-                            if (isset($queryes->query) && ! empty($queryes->query))
-                            {
-                                $x=0;
-                                foreach($queryes->query as $query)
-                                {
-                                    Database::updateQuery($query);
-                                    $x++;
-                                }
-                                echo 'Выполнено '.$x.' запросов на обновление.<br>';
-                            }
-                            
-                            if( isset($queryes_common->query) && ! empty($queryes_common->query) )
-                            {
-                                 $y=0;
-                                foreach($queryes_common->query as $query)
-                                {
-                                    Database::updateQuery($query);
-                                    $y++;
-                                }
-                                echo 'Выполнено '.$y.' запросов на обновление.<br>';
-                            }
-                            
-                            Database::updateSettings('dbVer', $updVersion);
-                        }
-                        else
-                            echo 'Не могу разархивировать stable.zip<br>';
-                    }
-                    else
-                        echo 'Не могу сохранить stable.zip<br>';
+        //Создаем новые каталоги
+        foreach($createFolders as $folder) {
+            if ( !file_exists(self::$root_dir.$folder) ) {
+                if ( mkdir(self::$root_dir.$folder, 0777, true) )
+                    echo 'Каталог: <b>'.$folder.'</b> успешно создан.<br>';
+                else{
+                    echo 'Не удалось создать директорию: <b>'.$folder.'</b><br>';
+                    return TRUE;
                 }
-                else
-                    echo 'Не удалось скачать stable.zip<br>';
             }
         }
-    }
-    
-    private static function xml_page()
-    {
-        if ( empty(Update::$xml_page) ) {
-            $opts = stream_context_create(array(
-                'http' => array(
-                    'timeout' => 1
-                    )
-                ));
-    
-            $xmlstr = @file_get_contents('http://vlmaksime.github.io/tme/update.xml', false, $opts);
-            Update::$xml_page = @simplexml_load_string($xmlstr);
-        }
-        return Update::$xml_page;
-    }
-    
-    public static function getUpdateInfo()
-    {
-        $changelog = array();
         
-        $version = Sys::version();
-        $dbVer   = Sys::dbVersion();
+        //Копируем файлы
+        foreach($copyFiles as $file) {
+            if ( copy(self::$install_dir.$file, self::$root_dir.$file) )
+                echo 'Файл: <b>'.$file.'</b> обновлён.<br>';
+            else {
+                echo 'Не удалось скопировать файл: <b>'.$file.'</b><br>';
+                return TRUE;
+            }
+        }
+        
+        //Выполняем запросы к базе данных
+        if ( count($queryes) ) {
+            foreach($queryes->query as $query) {
+                Database::updateQuery($query);
+            }
+            echo 'Выполнено '.count($queryes_common).' запросов на обновление.<br>';                            
+        }
 
-        $xml_page = Update::xml_page();
-        $count = count($xml_page->update) - 1;
+    }
+    
+    public static function Start()
+    {
+        self::$version    = Sys::version();
+        self::$db_version = Sys::dbVersion();
+        self::$dbType     = Config::read('db.type');
         
-        for ($i=$count; $i>=0; $i--)
-        {
-            $updVersion = (string) $xml_page->update[$i]->version;
-            if ( version_compare($version, $updVersion, '<') )
-            {
-                $desc = $xml_page->update[$i]->description;
-                $changelog[] = array('ver' => $updVersion,
-                                     'desc' => $desc);
+        //1.2.5.1
+        $updVersion = '1.2.5.1';
+        if ( self::NeedUpdate($updVersion) ) {
+            echo '<br>Обновление до версии '.$updVersion.'<br>';
+
+            $deleteFolders = array('testDelete', 'testCreate');
+            $createFolders = array('testCreate');
+            $queryes = array();
+            $deleteFiles = array('class/System.class.php');
+            $copyFiles = array('class/System.class.php',
+                               'class/Update.class.php',
+                               'action.php',
+                         );
+
+            $updateParams = array('deleteFolders'  => $deleteFolders,
+                                  'createFolders'  => $createFolders,
+                                  'deleteFiles'    => $deleteFiles,
+                                  'copyFiles'      => $copyFiles,
+                                  'queryes'        => $queryes,
+                            );
+
+            if ( self::InstallUpdate($updateParams) ) {
+                echo 'Обновление завершено с ошибками';
+                exit;
             }
+
+            $dbVer = $updVersion;
+            Database::updateSettings('dbVer', $dbVer);
         }
-        
-        if ( count($changelog) == 0 && version_compare($dbVer, $version, '<') ) {
-            $changelog[] = array('ver' => $version,
-                                 'desc' => 'Обновление базы данных');
-        }
-        
-        return $changelog;
-    }    
+
+        echo 'Обновление завершено успешно';
+
+        //Удаляем каталог с временными файлами
+        if ( file_exists(self::$root_dir.'tmp') )
+            self::deleteDirectory(self::$root_dir.'tmp');
+    }
 }
 ?>
