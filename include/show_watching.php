@@ -8,7 +8,7 @@ if ( ! Sys::checkAuth())
 
 include_once $dir."class/Database.class.php";
 include_once $dir."class/Trackers.class.php";
-include_once $dir."class/rain.tpl.class.php";
+include_once $dir."class/Lib/rain.tpl.class.php";
 
 $contents = array();
 
@@ -21,16 +21,16 @@ if ( ! empty($users))
 {
     foreach ($users as $user){
         $thremes = Database::getThremesFromBuffer($user['id']);
-        
+
         if (count($thremes))
             foreach ($thremes as $key=>$threme) {
                 $thremes[$key]['url'] = Trackers::generateURL($user['tracker'], $threme['threme_id']);
             }
-        
+
         $tpl = new RainTPL;
         $tpl->assign( "user", $user );
         $tpl->assign( "thremes", $thremes );
-        
+
         $contents[] = $tpl->draw( 'show_watching_user', true );
     }
 }

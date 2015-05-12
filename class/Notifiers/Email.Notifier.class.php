@@ -1,7 +1,7 @@
 <?php
 
-include_once dirname(__FILE__).'/../class/Notifier.class.php';
-include_once dirname(__FILE__).'/../class/Errors.class.php';
+include_once dirname(__FILE__).'/../Notifier.class.php';
+include_once dirname(__FILE__).'/../Errors.class.php';
 
 class EmailNotifier extends Notifier
 {

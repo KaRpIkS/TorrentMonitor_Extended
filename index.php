@@ -4,7 +4,7 @@ $dir = dirname(__FILE__).'/' ;
 session_start();
 
 include_once $dir."class/System.class.php";
-include_once $dir."class/rain.tpl.class.php";
+include_once $dir."class/Lib/rain.tpl.class.php";
 
 // заполнение шаблона
 raintpl::configure("root_dir", $dir );

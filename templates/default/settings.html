@@ -37,6 +37,20 @@
     </div>
     <p>
         <label class="label-name"></label>
+        <label><input type="checkbox" name="rss" {if="$rss"}checked{/if}> RSS лента</label>
+    </p>
+    <p>
+        <label class="label-name"></label>
+        <label><input type="checkbox" name="debug" {if="$debug"}checked{/if}> Режим отладки</label>
+    </p>
+    <button class="form-button">Сохранить</button>
+</form>
+<br/>
+<br/>
+<h2 class="settings-title">Настройки торрент-клиента</h2>
+<form id="torrent_client_settings">
+    <p>
+        <label class="label-name"></label>
         <label><input type="checkbox" id="torrent" name="torrent" {if="$useTorrent"}checked{/if} onclick="expand('torrentSettings')"> Управлять торрент-клиентом</label>
     </p>
     <div id="torrentSettings" {if="! $useTorrent"}class="result"{/if}>
@@ -44,24 +58,25 @@
             <label class="label-name">Торрент-клиент</label>
             <label>
                 <select id="torrentClient" name="torrentClient">
-                    <option value="Deluge" {if="$torrentClient == 'Deluge'"}selected{/if}>Deluge</option>
-                    <option value="Transmission" {if="$torrentClient == 'Transmission'"}selected{/if}>Transmission</option>
+                    {loop="torrentClients"}
+                        <option value="{$value.Name}" {if="$value.Name == $torrentClient"}selected{/if}>{$value.VerboseName}</option>
+                    {/loop}
                 </select>
             </label>
         </p>
         <p>
             <label class="label-name">IP, порт торрент-клиента</label>
-            <input type="text" name="torrentAddress" value="{$torrentAddress}">
+            <input type="text" name="torrentAddress" value="{$torrentClientAddress}">
             <span class="subinput-text">Например: 127.0.0.1:58846</span>
         </p>
         <p>
             <label class="label-name">Логин</label>
-            <input type="text" name="torrentLogin" value="{$torrentLogin}">
+            <input type="text" name="torrentLogin" value="{$torrentClientUser}">
             <span class="subinput-text">Например: KorP</span>
         </p>
         <p>
             <label class="label-name">Пароль</label>
-            <input type="password" name="torrentPassword" value="{$torrentPassword}">
+            <input type="password" name="torrentPassword" value="{$torrentClientPwd}">
             <span class="subinput-text">Например: Pa$$w0rd</span>
         </p>
         <p>
@@ -79,14 +94,7 @@
             <span class="subinput-text">Только для lostfilm.tv, novafilm.tv, baibako.tv и newstudio.tv</span>
         </p>
     </div>
-    <p>
-        <label class="label-name"></label>
-        <label><input type="checkbox" name="rss" {if="$rss"}checked{/if}> RSS лента</label>
-    </p>
-    <p>
-        <label class="label-name"></label>
-        <label><input type="checkbox" name="debug" {if="$debug"}checked{/if}> Режим отладки</label>
-    </p>
+
     <button class="form-button">Сохранить</button>
 </form>
 <br/>
