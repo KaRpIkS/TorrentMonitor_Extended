@@ -69,7 +69,7 @@ class Sys
     //версия системы
     public static function version()
     {
-        return '1.2.5.2';
+        return '1.2.6.1';
     }
 
     //версия системы
@@ -112,7 +112,8 @@ class Sys
 
         if ( ! empty($releaseInfo) )
             $latestVersion = $releaseInfo->tag_name;
-        else
+
+        if ( empty($releaseInfo) || version_compare($latestVersion, $version, '<') )
             $latestVersion = $version;
 
         $result = array('update' => FALSE,
@@ -143,7 +144,8 @@ class Sys
 
         if ( ! empty($releaseInfo) )
             $latestVersion = $releaseInfo->tag_name;
-        else
+
+        if ( empty($releaseInfo) || version_compare($latestVersion, $version, '<') )
             $latestVersion = $version;
 
         //Выполняем обновление модулей
@@ -217,7 +219,6 @@ class Sys
             if ( property_exists($release, 'tag_name') && ! $release->prerelease ) {
 
                 if ( version_compare($version, $release->tag_name, '<') ) {
-                    $desc = $xml_page->update[$i]->description;
                     $changelog[] = array('ver'	=> $release->tag_name,
                                          'desc'	=> nl2br( str_replace(' ', '&nbsp;', $release->body) ),
                                    );
