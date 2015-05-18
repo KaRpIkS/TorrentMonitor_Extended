@@ -20,7 +20,7 @@
     </p>
     <p>
         <label class="label-name">Обновлять заголовок автоматически</label>
-        <input type="checkbox" name="update" id="update"><br>
+        <input type="checkbox" name="update_header" id="update_header"><br>
     </p>
 	</div>
     <button class="form-button">Добавить</button>
@@ -55,7 +55,7 @@
         <input type="text" name="path" id="path2"><br>
         <span class="subinput-text">Например: /var/lib/transmission/downloads</span>
     </p>
-	</div>    
+	</div>
     <button class="form-button">Добавить</button>
 </form>
 <br/>
@@ -88,7 +88,7 @@
 $(function() {
     var availableTags = [
     {loop="paths"}
-      "{$value['path']}", 
+      "{$value['path']}",
     {/loop}
     ];
     $( "#path" ).autocomplete({
