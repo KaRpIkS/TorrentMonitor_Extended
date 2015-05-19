@@ -48,21 +48,14 @@ class rTorrent extends TorrentClient
 
         if ($req->success())
         {
-            // Проверим статус раздачи
-            $req = new rXMLRPCRequest($this->ClientAddress(), new rXMLRPCCommand('d.is_open', $hash));
+            // Надо подождать секунду, пока раздача появится в списке
+            sleep(1);
+            // Проверим, добавилась раздача или нет
+            $req = new rXMLRPCRequest($this->ClientAddress(), new rXMLRPCCommand('d.get_state', $hash));
             if ($req->success())
             {
-                $is_open = $req->val[0];
-                if ($is_open)
-                {
-                    $return['status'] = TRUE;
-                    $return['hash'] = $hash;
-                }
-                else
-                {
-                    $return['status'] = FALSE;
-                    $return['msg'] = 'unknown';
-                }
+                $return['status'] = TRUE;
+                $return['hash'] = $hash;
             }
             else
             {
