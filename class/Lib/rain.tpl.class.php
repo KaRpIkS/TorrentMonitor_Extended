@@ -63,7 +63,7 @@ class RainTPL{
          *
          * @var array
          */
-        static $path_replace_list = array( /*'a',*/ 'img', 'link', /*'script',*/ 'input' );
+		static $path_replace_list = array( 'a', 'img', 'link', 'script', 'input' );
 
 
         /**

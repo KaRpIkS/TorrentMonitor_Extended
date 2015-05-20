@@ -2,6 +2,7 @@
 
 include_once dirname(__FILE__).'/Notifier.class.php';
 include_once dirname(__FILE__).'/TorrentClient.class.php';
+include_once dirname(__FILE__).'/Lib/rain.tpl.class.php';
 
 class Sys
 {
@@ -711,6 +712,24 @@ class Sys
     		else return FALSE;
     	}
     	else return FALSE;
+    }
+
+    public static function fieldsToHtml($fields) {
+        $html = '';
+        
+        raintpl::configure("root_dir", str_replace('class', '', dirname(__FILE__)) );
+        raintpl::configure("tpl_dir" , self::getTemplateDir() );
+        
+        foreach ($fields as $fieldName => $fieldParams) {
+            $tpl = new RainTPL;
+            $tpl->assign( 'name'  , $fieldName );
+            foreach ($fieldParams as $key => $val) {
+                $tpl->assign( $key  , $val );
+            }
+            $html .= $tpl->draw( "templates", true );
+        }
+        
+        return $html;
     }
 }
 ?>

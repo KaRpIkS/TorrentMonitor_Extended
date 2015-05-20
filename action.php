@@ -311,14 +311,10 @@ if (isset($_POST['action']))
     }
     elseif ($action == 'updateTorrentClientSettings')
     {
-        $useTorrent = Sys::strBoolToInt($_POST['torrent']) ;
-        $clientClass = $_POST['torrentClient'];
-        $clientAddress = $_POST['torrentAddress'];
-        $clientUser = $_POST['torrentLogin'];
-        $clientPwd = $_POST['torrentPassword'];
-        $pathToDownload = Sys::checkPath($_POST['pathToDownload']);
-        $deleteDistribution = Sys::strBoolToInt($_POST['deleteDistribution']);
-        $deleteOldFiles = Sys::strBoolToInt($_POST['deleteOldFiles']);
+        $params = json_decode($_POST['params']);
+
+        $useTorrent  = $params->torrent;
+        $clientClass = $params->torrentClient;
 
         Database::updateSettings('useTorrent', $useTorrent);
 
@@ -329,7 +325,7 @@ if (isset($_POST['action']))
                 Database::removePluginSettings($client);
             else
             {
-               $client->SetParams($clientAddress, $clientUser, $clientPwd, $pathToDownload, $deleteDistribution, $deleteOldFiles);
+               $client->SetParams($params->settings);
             }
             $client = NULL;
         }

@@ -59,5 +59,13 @@ class Deluge extends TorrentClient
         else
             return array('text' => 'OK', 'error' => false);
     }
+
+    protected function localSetDefaultSettings($settings)
+    {
+        if ( ! isset($settings['clientAddress']) || empty($settings['clientAddress']) )
+            $settings['clientAddress'] = 'localhost:58846';
+        
+        return $settings;
+    }
 }
 ?>

@@ -90,4 +90,22 @@ class rTorrent extends TorrentClient
         }
     }
 
+    protected function localSetDefaultSettings($settings)
+    {
+        if ( ! isset($settings['clientAddress']) || empty($settings['clientAddress']) )
+            $settings['clientAddress'] = 'localhost:5000';
+        
+        return $settings;
+    }
+
+    // Функция возвращает перечень полей, которые используются для клиента
+    protected function UsedSettingsFields()
+    {
+        $usedFields = array('clientAddress',
+                            'pathToDownload',
+                            'deleteDistribution',
+                      );
+                      
+        return $usedFields;
+    }
 }

@@ -18,6 +18,9 @@ abstract class TorrentClient extends Plugin
     // Ф-ция реализующая непосредственно добавление торрента
     protected abstract function localAdd($params_array);
 
+    // Ф-ция заполняет пустые параметры значениями по умолчанию
+    protected abstract function localSetDefaultSettings($settings);
+
     final public function Name()
     {
         return get_called_class();
@@ -63,14 +66,11 @@ abstract class TorrentClient extends Plugin
         return $this->GetProperty('deleteOldFiles');
     }
 
-    final public function SetParams($address, $user, $pwd, $path, $delDistr, $delOld)
+    final public function SetParams($settings)
     {
-        $this->SetProperty('clientAddress', $address);
-        $this->SetProperty('clientUser', $user);
-        $this->SetProperty('clientPwd', $pwd);
-        $this->SetProperty('pathToDownload', $path);
-        $this->SetProperty('deleteDistribution', $delDistr);
-        $this->SetProperty('deleteOldFiles', $delOld);
+        foreach($settings as $key => $val) {
+            $this->SetProperty($key, $val);
+        }
     }
 
     protected function GetDownloadPath($id)
@@ -182,6 +182,93 @@ abstract class TorrentClient extends Plugin
 
         $client = null;
         return $result;
+    }
+
+    public function SettingsHtml()
+    {
+        $fields     = self::GetSettingsFields();
+        $usedFields = $this->UsedSettingsFields();
+        $settings   = $this->GetSettings();
+        $clientName = $this->Name();
+        
+        $clientFields = array();
+        foreach ($usedFields as $fieldName)
+            if ( isset($fields[$fieldName]) ) {
+                $clientFields[$fieldName] = $fields[$fieldName];
+                $clientFields[$fieldName]['val'] = isset($settings[$fieldName]) ? $settings[$fieldName] : '';
+                $clientFields[$fieldName]['class'] = $clientName.'_setting';
+            }
+ 
+        return Sys::fieldsToHtml($clientFields);
+    }
+
+    // Ф-ция формирует перечень полей настроек клиента
+    protected static function GetSettingsFields()
+    {
+        $fields = array();
+
+        //Адрес клиента
+        $fields[clientAddress] = array('type'    => 'input-text',
+                                       'verbName' => 'Адрес, порт торрент-клиента',
+                                       'desc'     => 'Например: 127.0.0.1:58846',
+                                 );
+
+        //Логин
+        $fields[clientUser] = array('type'     => 'input-text',
+                                    'verbName' => 'Логин',
+                                    'desc'     => 'Например: KorP',
+                              );
+
+        //Пароль
+        $fields[clientPwd] = array('type'     => 'input-pwd',
+                                   'verbName' => 'Пароль',
+                                   'desc'     => 'Например: Pa$$w0rd',
+                             );
+
+        //Каталог для скачивания
+        $fields[pathToDownload] = array('type'     => 'input-text',
+                                        'verbName' => 'Директория для скачивания',
+                                        'desc'     => 'Например: /var/lib/transmission/downloads',
+                                  );
+
+        //Удалять раздачи из torrent-клиента
+        $fields[deleteDistribution] = array('type'     => 'input-checkbox',
+                                            'verbName' => 'Удалять раздачи из torrent-клиента',
+                                      );
+
+        //Удалять файлы старых раздач
+        $fields[deleteOldFiles] = array('type'     => 'input-checkbox',
+                                        'verbName' => 'Удалять файлы старых раздач',
+                                        'desc'     => 'Только для lostfilm.tv, novafilm.tv, baibako.tv и newstudio.tv',
+                                  );
+
+        return $fields;
+    }
+
+    // Ф-ция возвращает перечень полей, которые используются для клиента
+    protected function UsedSettingsFields()
+    {
+        $settings   = $this->GetSettings();
+        $usedFields = array();
+        
+        //По умолчанию выводим все поля, для которых существуют настройки
+        foreach($settings as $key => $val)
+            $usedFields[] = $key;
+        
+        return $usedFields;
+    }
+
+    // Ф-ция возвращает параметры клиента
+    protected function GetSettings()
+    {
+        $settings = array('clientAddress'      => $this->ClientAddress(),
+                          'clientUser'         => $this->ClientUser(),
+                          'clientPwd'          => $this->ClientPwd(),
+                          'pathToDownload'     => $this->PathToDownload(),
+                          'deleteDistribution' => $this->DeleteDistribution(),
+                          'deleteOldFiles'     => $this->DeleteOldFiles(),
+                    );
+        return $this->localSetDefaultSettings($settings);
     }
 }
 ?>
