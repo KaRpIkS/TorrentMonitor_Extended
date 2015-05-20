@@ -22,37 +22,17 @@ foreach ($settings as $row)
     foreach ($row as $key=>$val)
         $tpl->assign( $key, $val );
 
-
 // Заполняем шаблон настройками торрент-клиента
-$tpl->assign( 'torrentClients', Sys::getTorrentClients() );
-$client = TorrentClient::Create();
-if ( $client != null)
-{
-    $torrentClient = $client->Name();
-    $torrentClientAddress = $client->ClientAddress();
-    $torrentClientUser = $client->ClientUser();
-    $torrentClientPwd = $client->ClientPwd();
-    $pathToDownload = $client->PathToDownload();
-    $deleteDistribution = $client->DeleteDistribution();
-    $deleteOldFiles = $client->DeleteOldFiles();
+$torrentClients = Sys::getTorrentClients();
+$tpl->assign( 'torrentClients', $torrentClients );
+
+$torrentClientSettings = array();
+foreach ($torrentClients as $torrentClient) {
+    $clientName = $torrentClient['Name'];
+    $client = TorrentClient::Create($clientName);
+    $torrentClientSettings[$clientName] = $client->SettingsHtml();
 }
-else
-{
-    $torrentClient = '';
-    $torrentClientAddress = '';
-    $torrentClientUser = '';
-    $torrentClientPwd = '';
-    $pathToDownload = '';
-    $deleteDistribution = '';
-    $deleteOldFiles = '';
-}
-$tpl->assign( 'torrentClient', $torrentClient );
-$tpl->assign( 'torrentClientAddress', $torrentClientAddress );
-$tpl->assign( 'torrentClientUser', $torrentClientUser );
-$tpl->assign( 'torrentClientPwd', $torrentClientPwd );
-$tpl->assign( 'pathToDownload', $pathToDownload );
-$tpl->assign( 'deleteDistribution', $deleteDistribution );
-$tpl->assign( 'deleteOldFiles', $deleteOldFiles );
+$tpl->assign( 'torrentClientSettings', $torrentClientSettings );
 
 
 

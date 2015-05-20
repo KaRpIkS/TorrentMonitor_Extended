@@ -317,6 +317,7 @@ if (isset($_POST['action']))
         $clientClass = $params->torrentClient;
 
         Database::updateSettings('useTorrent', $useTorrent);
+        Database::updateSettings('torrentClient', $clientClass);
 
         $client = TorrentClient::Create($clientClass);
         if ($client != NULL)

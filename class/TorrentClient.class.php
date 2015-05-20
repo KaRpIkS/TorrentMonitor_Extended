@@ -111,11 +111,7 @@ abstract class TorrentClient extends Plugin
     {
         if ($clientName == '')
         {
-            foreach (Database::getActivePluginsByType(TorrentClient::$type) as $plugin)
-            {
-                $clientName = $plugin['name'];
-                break;
-            }
+            $clientName = Database::getSetting('torrentClient');
         }
 
         if ( empty($clientName) )
@@ -190,7 +186,7 @@ abstract class TorrentClient extends Plugin
         $usedFields = $this->UsedSettingsFields();
         $settings   = $this->GetSettings();
         $clientName = $this->Name();
-        
+
         $clientFields = array();
         foreach ($usedFields as $fieldName)
             if ( isset($fields[$fieldName]) ) {
@@ -198,7 +194,7 @@ abstract class TorrentClient extends Plugin
                 $clientFields[$fieldName]['val'] = isset($settings[$fieldName]) ? $settings[$fieldName] : '';
                 $clientFields[$fieldName]['class'] = $clientName.'_setting';
             }
- 
+
         return Sys::fieldsToHtml($clientFields);
     }
 
@@ -250,11 +246,11 @@ abstract class TorrentClient extends Plugin
     {
         $settings   = $this->GetSettings();
         $usedFields = array();
-        
+
         //По умолчанию выводим все поля, для которых существуют настройки
         foreach($settings as $key => $val)
             $usedFields[] = $key;
-        
+
         return $usedFields;
     }
 

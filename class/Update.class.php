@@ -193,7 +193,6 @@ class Update {
                              );
             $queryes       = array("DELETE FROM settings WHERE `key` = 'send';",
                                    "DELETE FROM settings WHERE `key` = 'sendWarning';",
-                                   "DELETE FROM settings WHERE `key` = 'torrentClient';",
                                    "DELETE FROM settings WHERE `key` = 'torrentAddress';",
                                    "DELETE FROM settings WHERE `key` = 'torrentLogin';",
                                    "DELETE FROM settings WHERE `key` = 'torrentPassword';",
