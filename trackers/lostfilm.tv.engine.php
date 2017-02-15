@@ -4,11 +4,11 @@ class lostfilmtv
     protected static $sess_cookie;
     protected static $exucution;
     protected static $warning;
-    
-    protected static $page;    
+
+    protected static $page;
     protected static $log_page;
     protected static $xml_page;
-    
+
     //получаем куки для доступа к сайту
     private static function login($login, $password)
     {
@@ -23,56 +23,56 @@ class lostfilmtv
         );
         return $result;
     }
-    
+
     //получаем куки для доступа к сайту
     private static function getCookies($tracker, $array)
     {
         if ( ! empty($array))
         {
-            lostfilmtv::$sess_cookie = $array[1][0]."=".$array[2][0]." ".$array[1][1]."=".$array[2][1];
+            self::$sess_cookie = $array[1][0]."=".$array[2][0]." ".$array[1][1]."=".$array[2][1];
             $page = Sys::getUrlContent(
                 array(
                     'type'           => 'GET',
                     'header'         => 0,
                     'returntransfer' => 1,
-                    'url'            => 'https://www.lostfilm.tv/my.php',
-                    'cookie'         => lostfilmtv::$sess_cookie,
-                    'sendHeader'     => array('Host' => 'www.lostfilm.tv'),
+                    'url'            => 'http://old.lostfilm.tv/my.php',
+                    'cookie'         => self::$sess_cookie,
+                    'sendHeader'     => array('Host' => 'old.lostfilm.tv'),
                     'convert'        => array('windows-1251', 'utf-8//IGNORE'),
                 )
             );
             preg_match('/<td align=\"left\">(.*)<br >/', $page, $out);
             if (isset($out[1]))
             {
-                lostfilmtv::$sess_cookie .= ' usess='.$out[1];
-                Database::setCookie($tracker, lostfilmtv::$sess_cookie);
+                self::$sess_cookie .= ' usess='.$out[1];
+                Database::setCookie($tracker, self::$sess_cookie);
                 Database::clearWarnings('lostfilm.tv');
             }
             else
             {
                 //устанавливаем варнинг
-                if (lostfilmtv::$warning == NULL)
+                if (self::$warning == NULL)
                 {
-                    lostfilmtv::$warning = TRUE;
+                    self::$warning = TRUE;
                     Errors::setWarnings($tracker, 'not_available');
                 }
                 //останавливаем выполнение цепочки
-                lostfilmtv::$exucution = FALSE;                    
+                self::$exucution = FALSE;
             }
         }
-        else 
+        else
         {
             //устанавливаем варнинг
-            if (lostfilmtv::$warning == NULL)
+            if (self::$warning == NULL)
                {
-                   lostfilmtv::$warning = TRUE;
+                   self::$warning = TRUE;
                    Errors::setWarnings($tracker, 'credential_miss');
                }
             //останавливаем выполнение цепочки
-            lostfilmtv::$exucution = FALSE;        
+            self::$exucution = FALSE;
         }
-    }    
-    
+    }
+
     //проверяем cookie
     public static function checkCookie($sess_cookie)
     {
@@ -81,9 +81,9 @@ class lostfilmtv
                 'type'           => 'POST',
                 'header'         => 0,
                 'returntransfer' => 1,
-                'url'            => 'https://www.lostfilm.tv/',
+                'url'            => 'http://old.lostfilm.tv/',
                 'cookie'         => $sess_cookie,
-                'sendHeader'     => array('Host' => 'www.lostfilm.tv'),
+                'sendHeader'     => array('Host' => 'old.lostfilm.tv'),
                 'convert'        => array('windows-1251', 'utf-8//IGNORE'),
             )
         );
@@ -91,9 +91,9 @@ class lostfilmtv
         if (preg_match('/ПРИВЕТ, <span class=\"wh\">.*\s<!-- \(ID: .*\) --><\/span><br \/>/', $result))
             return TRUE;
         else
-            return FALSE;          
-    }    
-    
+            return FALSE;
+    }
+
     //функция проверки введёного названия
     public static function checkRule($data)
     {
@@ -108,17 +108,17 @@ class lostfilmtv
     {
         $data = substr($data, 5);
         $data = substr($data, 0, -6);
-        
+
         $monthes = array('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec');
         $month = substr($data, 3, 3);
         $data = preg_replace('/(\d\d)-(\d\d)-(\d\d)/', '$3-$2-$1', str_replace($month, str_pad(array_search($month, $monthes)+1, 2, 0, STR_PAD_LEFT), $data));
-        
+
         $data = preg_split('/\s/', $data);
         $date = $data[2].'-'.$data[1].'-'.$data[0].' '.$data[3];
-        
+
         return $date;
     }
-    
+
     //функция преобразования даты в строку
     private static function dateNumToString($data)
     {
@@ -129,11 +129,11 @@ class lostfilmtv
         $data = preg_split('/\-/', $data);
 
         $month = Sys::dateNumToString($data[1]);
-        $date = $data[2].' '.$month.' '.$data[0].' '.$time;
-        
+        $date = $data[2].' '.$month.' '.$data[0].' в '.$time;
+
         return $date;
     }
-    
+
     //функция учёта часового пояса
     private static function dateOffset($date)
     {
@@ -142,9 +142,9 @@ class lostfilmtv
         $now = new DateTime("now", $this_tz);
         $offset = $this_tz->getOffset($now);
 
-        return date('Y-m-d H:i:s', strtotime($date) + $offset);        
+        return date('Y-m-d H:i:s', strtotime($date) + $offset);
     }
-    
+
     //функция анализа эпизода
     private static function analysisEpisode($item)
     {
@@ -152,11 +152,11 @@ class lostfilmtv
         if (isset($matches[0]))
         {
             $episode = $matches[0];
-            $date = lostfilmtv::dateStringToNum($item->pubDate);
-            return array('episode'=>$episode, 'date'=>lostfilmtv::dateOffset($date), 'link'=>(string)$item->link);
+            $date = self::dateStringToNum($item->pubDate);
+            return array('episode'=>$episode, 'date'=>self::dateOffset($date), 'link'=>(string)$item->link);
         }
     }
-    
+
     //функция анализа xml ленты
     private static function analysis($name, $hd, $item)
     {
@@ -165,21 +165,21 @@ class lostfilmtv
             if ($hd == 0)
             {
                 if (preg_match_all('/avi|AVI/', $item->link, $matches))
-                    return lostfilmtv::analysisEpisode($item);
+                    return self::analysisEpisode($item);
             }
             elseif ($hd == 1)
             {
                 if (preg_match_all('/mkv|MKV/', $item->link, $matches))
-                    return lostfilmtv::analysisEpisode($item);
+                    return self::analysisEpisode($item);
             }
             elseif ($hd == 2)
             {
                 if (preg_match_all('/mp4|MP4/', $item->link, $matches))
-                    return lostfilmtv::analysisEpisode($item);
+                    return self::analysisEpisode($item);
             }
         }
     }
-    
+
     private static function getCookie($tracker)
     {
         //проверяем заполнены ли учётные данные
@@ -189,22 +189,22 @@ class lostfilmtv
             $credentials = Database::getCredentials($tracker);
             $login = iconv('utf-8', 'windows-1251', $credentials['login']);
             $password = $credentials['password'];
-            
-            $page = lostfilmtv::login($login, $password);
+
+            $page = self::login($login, $password);
             preg_match_all('/name=\"(.*)\"/iU', $page, $array_names);
             preg_match_all('/value=\"(.*)\"/iU', $page, $array_values);
             preg_match('/action=\"(.*)\"/iU', $page, $url_array);
-            
+
             if ( ! empty($array_names) &&  ! empty($array_values) && isset($url_array[1]))
             {
                 $post = '';
                 for($i=0; $i<count($array_values[1]); $i++)
                     $post .= $array_names[1][$i+1].'='.$array_values[1][$i].'&';
-                
-                $url = $url_array[1];
 
+                $url = $url_array[1];
+                $url = str_replace('www', 'old', $url);
                 $post = substr($post, 0, -1);
-                
+
                 $page = Sys::getUrlContent(
                     array(
                         'type'           => 'POST',
@@ -215,134 +215,134 @@ class lostfilmtv
                         'convert'        => array('windows-1251', 'utf-8//IGNORE'),
                     )
                 );
-                
+
                 if (preg_match_all('/Set-Cookie: (\w*)=(\S*)/', $page, $array))
                 {
-                    lostfilmtv::getCookies($tracker, $array);
-                    lostfilmtv::$exucution = TRUE;
+                    self::getCookies($tracker, $array);
+                    self::$exucution = TRUE;
                 }
             }
             else
             {
                 //устанавливаем варнинг
-                if (lostfilmtv::$warning == NULL)
+                if (self::$warning == NULL)
                 {
-                    lostfilmtv::$warning = TRUE;
+                    self::$warning = TRUE;
                     Errors::setWarnings($tracker, 'credential_wrong');
                 }
                 //останавливаем выполнение цепочки
-                lostfilmtv::$exucution = FALSE;
+                self::$exucution = FALSE;
             }
         }
         else
         {
             //устанавливаем варнинг
-            if (lostfilmtv::$warning == NULL)
+            if (self::$warning == NULL)
             {
-                lostfilmtv::$warning = TRUE;
+                self::$warning = TRUE;
                 Errors::setWarnings($tracker, 'credential_miss');
             }
             //останавливаем выполнение цепочки
-            lostfilmtv::$exucution = FALSE;                        
-        }            
+            self::$exucution = FALSE;
+        }
     }
-    
+
     //основная функция
     public static function main($torrentInfo)
     {
         extract($torrentInfo);
-        
+
         //проверяем небыло ли до этого уже ошибок
-        if (empty(lostfilmtv::$exucution) || (lostfilmtv::$exucution))
+        if (empty(self::$exucution) || (self::$exucution))
         {
             //проверяем получена ли уже кука
-            if (empty(lostfilmtv::$sess_cookie))
+            if (empty(self::$sess_cookie))
             {
                 $cookie = Database::getCookie($tracker);
-                if (lostfilmtv::checkCookie($cookie))
+                if (self::checkCookie($cookie))
                 {
-                    lostfilmtv::$sess_cookie = $cookie;
+                    self::$sess_cookie = $cookie;
                     //запускам процесс выполнения
-                    lostfilmtv::$exucution = TRUE;
-                }            
+                    self::$exucution = TRUE;
+                }
                 else
-                    lostfilmtv::getCookie($tracker);
+                    self::getCookie($tracker);
             }
-            
-            lostfilmtv::$sess_cookie = Database::getCookie($tracker);
-            lostfilmtv::$exucution = TRUE;
+
+            self::$sess_cookie = Database::getCookie($tracker);
+            self::$exucution = TRUE;
 
             //проверяем получена ли уже RSS лента
-            if ( ! lostfilmtv::$log_page)
+            if ( ! self::$log_page)
             {
-                if (lostfilmtv::$exucution)
+                if (self::$exucution)
                 {
                     //получаем страницу
                     $page = Sys::getUrlContent(
                         array(
                             'type'           => 'GET',
                             'returntransfer' => 1,
-                            'url'            => 'https://www.lostfilm.tv/rssdd.xml',
+                            'url'            => 'http://old.lostfilm.tv/rssdd.xml',
                             'convert'        => array('windows-1251', 'utf-8//IGNORE'),
                         )
                     );
 
-                    lostfilmtv::$page = str_replace('<?xml version="1.0" encoding="windows-1251" ?>','<?xml version="1.0" encoding="utf-8"?>', $page);
-                    if ( ! empty(lostfilmtv::$page))
+                    self::$page = str_replace('<?xml version="1.0" encoding="windows-1251" ?>','<?xml version="1.0" encoding="utf-8"?>', $page);
+                    if ( ! empty(self::$page))
                     {
                         //читаем xml
-                        lostfilmtv::$xml_page = @simplexml_load_string(lostfilmtv::$page);
+                        self::$xml_page = @simplexml_load_string(self::$page);
                         //если XML пришёл с ошибками - останавливаем выполнение, иначе - ставим флажок, что получаем страницу
-                        if ( ! lostfilmtv::$xml_page)
+                        if ( ! self::$xml_page)
                         {
                             //устанавливаем варнинг
-                            if (lostfilmtv::$warning == NULL)
+                            if (self::$warning == NULL)
                             {
-                                lostfilmtv::$warning = TRUE;
+                                self::$warning = TRUE;
                                 Errors::setWarnings($tracker, 'rss_parse_false');
                             }
                             //останавливаем выполнение цепочки
-                            lostfilmtv::$exucution = FALSE;
+                            self::$exucution = FALSE;
                         }
                         else
-                            lostfilmtv::$log_page = TRUE;
+                            self::$log_page = TRUE;
                     }
                     else
                     {
                         //устанавливаем варнинг
-                        if (lostfilmtv::$warning == NULL)
+                        if (self::$warning == NULL)
                         {
-                            lostfilmtv::$warning = TRUE;
+                            self::$warning = TRUE;
                             Errors::setWarnings($tracker, 'not_available');
                         }
                         //останавливаем выполнение цепочки
-                        lostfilmtv::$exucution = FALSE;                            
+                        self::$exucution = FALSE;
                     }
                 }
             }
 
             //если выполнение цепочки не остановлено
-            if (lostfilmtv::$exucution)
+            if (self::$exucution)
             {
-                if ( ! empty(lostfilmtv::$xml_page))
+                if ( ! empty(self::$xml_page))
                 {
                     //сбрасываем варнинг
                     Database::clearWarnings($tracker);
                     $nodes = array();
-                    foreach (lostfilmtv::$xml_page->channel->item AS $item)
+                    foreach (self::$xml_page->channel->item AS $item)
                     {
                         array_unshift($nodes, $item);
                     }
-                    
+
                     foreach ($nodes as $item)
                     {
-                        $serial = lostfilmtv::analysis($name, $hd, $item);
+                        $serial = self::analysis($name, $hd, $item);
                         if ( ! empty($serial))
                         {
                             $episode = substr($serial['episode'], 4, 2);
                             $season = substr($serial['episode'], 1, 2);
-                            $date_str = lostfilmtv::dateNumToString($serial['date']);
-                        
+                            $date_str = self::dateNumToString($serial['date']);
+
                             if ( ! empty($ep))
                             {
                                 if ($season == substr($ep, 1, 2) && $episode > substr($ep, 4, 2))
@@ -356,7 +356,7 @@ class lostfilmtv
                                 $download = TRUE;
                             else
                                 $download = FALSE;
-                            
+
                             if ($download)
                             {
                                 if ($hd == 1 || $hd == 3)
@@ -365,19 +365,21 @@ class lostfilmtv
                                     $amp = 'MP4';
                                 else
                                     $amp = 'SD';
+                                $url = str_replace('https', 'http', $serial['link']);
+                                $url = str_replace('www', 'old', $url);
                                 //сохраняем торрент в файл
                                 $torrent = Sys::getUrlContent(
                                     array(
                                         'type'           => 'POST',
                                         'returntransfer' => 1,
-                                        'url'            => $serial['link'],
-                                        'cookie'         => lostfilmtv::$sess_cookie,
-                                        'sendHeader'     => array('Host' => 'www.lostfilm.tv', 'Content-length' => strlen(lostfilmtv::$sess_cookie)),
+                                        'url'            => $url,
+                                        'cookie'         => self::$sess_cookie,
+                                        'sendHeader'     => array('Host' => 'old.lostfilm.tv', 'Content-length' => strlen(self::$sess_cookie)),
                                     )
                                 );
-                                
+
                                 if (Sys::checkTorrentFile($torrent))
-                                {                            
+                                {
                                     $file = str_replace(' ', '.', $name).'.S'.$season.'E'.$episode.'.'.$amp;
                                     $episode = (substr($episode, 0, 1) == 0) ? substr($episode, 1, 1) : $episode;
                                     $season = (substr($season, 0, 1) == 0) ? substr($season, 1, 1) : $season;
@@ -398,7 +400,7 @@ class lostfilmtv
             }
         }
     }
-    
+
     // функция возвращает тип раздач, которые обрабатывает треккер
     public static function getTrackerType() {
         return 'series';

@@ -248,6 +248,39 @@ class Update {
             Database::updateSettings('dbVer', self::$db_version);
         }
 
+        $updVersion = '1.2.6.2';
+        if ( self::NeedUpdate($updVersion) ) {
+            echo '<br>Обновление до версии '.$updVersion.'<br>';
+
+            //Подготовка параметров для обновления модулей и БД
+            $deleteFolders = array(); //Перечень удаляемыйх каталогов
+            $createFolders = array(); //Перечень создаваемых каталогов
+            $deleteFiles   = array(); //Перечень удаляемыйх файлов
+            $copyFiles     = array('class/System.class.php',
+                                   'class/Update.class.php',
+                                   'trackers/lostfilm.tv.engine.php'
+                             );
+            $queryes       = array(); //Перечень выполняемых запросов
+
+            $updateParams = array('deleteFolders' => $deleteFolders,
+                                  'createFolders' => $createFolders,
+                                  'deleteFiles'   => $deleteFiles,
+                                  'copyFiles'     => $copyFiles,
+                                  'queryes'       => $queryes,
+                            );
+
+            //Выполнение обновления модулей и БД
+            if ( self::InstallUpdate($updateParams, $updVersion) ) {
+                echo 'Обновление завершено с ошибками';
+                exit;
+            }
+
+            //Обновление данных о версии
+            self::$version = $updVersion;
+            self::$db_version = $updVersion;
+            Database::updateSettings('dbVer', self::$db_version);
+        }
+
         echo 'Обновление завершено успешно';
 
         //Удаляем каталог с временными файлами
