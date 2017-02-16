@@ -414,15 +414,20 @@ $( document ).ready(function()
         var $form = $(this),
             //s = $form.find('input[type=submit]'),
             torrent = $form.find('input[name="torrent"]').prop('checked');
-            torrentClient = $form.find('select[name="torrentClient"]').val();
-            torrentAddress = $form.find('input[name="torrentAddress"]').val();
-            torrentLogin = $form.find('input[name="torrentLogin"]').val();
-            torrentPassword = $form.find('input[name="torrentPassword"]').val();
-            pathToDownload = $form.find('input[name="pathToDownload"]').val();
-            deleteDistribution = $form.find('input[name="deleteDistribution"]').prop('checked');
-            deleteOldFiles = $form.find('input[name="deleteOldFiles"]').prop('checked');
+            torrentClient = $form.find('select[name="torrentClient"]').val().replace('_lable', '');
+
+        var params = new Object;
+        params['torrent'] = torrent;
+        params['torrentClient'] = torrentClient;
         
-        if (torrent == 'checked' && torrentClient == ''  && torrentAddress == '' && pathToDownload == '')
+        var torrentSettings = new Object;
+        $('.' + torrentClient + '_setting').each(function(){
+            torrentSettings[$(this).attr('name')] = getElementValue($(this));
+        });
+
+        params['settings'] = torrentSettings;
+        
+        if (torrent == 'checked' && torrentClient == ''  && torrentSettings['torrentAddress'] == '' && torrentSettings['pathToDownload'] == '')
             formError += "Вы не указали настройки торрент-клиента.";
 
         if (formError != "")
@@ -432,10 +437,7 @@ $( document ).ready(function()
         }
 
         ohSnap('Обрабатывается запрос...', 'yellow');
-        $.post("action.php",{action: 'updateTorrentClientSettings', torrent: torrent,
-            torrentClient: torrentClient, torrentAddress: torrentAddress, torrentLogin: torrentLogin,
-            torrentPassword: torrentPassword, pathToDownload: pathToDownload,
-            deleteDistribution: deleteDistribution, deleteOldFiles: deleteOldFiles},
+        $.post("action.php",{action: 'updateTorrentClientSettings', params: JSON.stringify(params)},
             function(data) {
                 if (data.error)
                 {
@@ -535,6 +537,18 @@ function expand(id)
 	else 
 		$(div).slideUp("slow");
 	return false;
+}
+
+//Получаем значение элемента
+function getElementValue(element) {
+    var value;
+    
+    if ( element.attr('type') == 'checkbox' )
+        value = element.prop('checked');
+    else
+        value = element.val();
+    
+    return value;
 }
 
 //Удаляем пользователя
@@ -671,8 +685,6 @@ function del(id, name)
 function changeDiv(type, selectedValue)
 {
     $('.' + type + '_label').each(function(){							
-console.log(selectedValue);
-console.log($(this).attr('id'));
         if (selectedValue == $(this).attr('id') )
             $(this).show()
         else

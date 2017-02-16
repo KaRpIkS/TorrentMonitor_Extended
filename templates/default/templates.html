@@ -1,0 +1,26 @@
+﻿{if="substr($type,0,5)=='input'"}
+    <p>
+    {if="$type == 'input-text'"}
+        <label class="label-name">{$verbName}</label>
+        <input type="text" name="{$name}" value="{$val}" class="{$class}">
+    {elseif="$type == 'input-pwd'"}
+        <label class="label-name">{$verbName}</label>
+        <input type="password" name="{$name}" value="{$val}" class="{$class}">
+    {elseif="$type == 'input-checkbox'"}
+        <label class="label-name"></label>
+        <label><input type="checkbox" name="{$name}" class="{$class}" {$val ? 'checked' : ''}> {$verbName}</label>
+    {elseif="$type == 'input-select'"}
+        <label class="label-name">{$verbName}</label>
+        <label>
+            <select name="{$name}">
+                {loop="{$values}"}
+                    <option value="{$value.Name}{$suffix} {$value.Name == $val ? 'selected' : ''}>{$value.VerboseName}</option>
+                {/loop}
+            </select>
+        </label>
+    {/if}
+    {if="isset($desc) && !empty($desc)"}
+        <span class="subinput-text">{$desc}</span>
+    {/if}
+    </p>
+{/if}
